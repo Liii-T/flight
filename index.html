@@ -240,7 +240,22 @@
             font-weight: bold;
             color: #ffe135;
         }
-
+        .day.best-crown::after {
+            content: '👑';
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 0.72em;
+            line-height: 1;
+            z-index: 3;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
+        }
+        
+        .day.selected-out.best-crown::after,
+        .day.selected-in.best-crown::after {
+            top: 1px;
+            right: 1px;
+        }
         /* 排行榜 UI */
         .btn-toggle-rank {
             background: linear-gradient(135deg, #6c5ce7, #8e44ad);
@@ -560,6 +575,63 @@
         return leave;
     }
 
+    function getTripPrice(outFlight, inFlight) {
+    if (tripMode === 'yvr') {
+        return outFlight.price + inFlight.p_yvr;
+    }
+
+    // 多點模式
+    if (outFlight.air === '星宇航空') {
+        return outFlight.price + inFlight.p_multi;
+    }
+
+    // 長榮多點套票，沿用你原本排行榜/結果的概念，固定抓 32000
+    return 32000;
+}
+
+function getBestCrownDates(candidateOutFlights, maxLeave) {
+    const outDates = new Set();
+    const inDates = new Set();
+
+    let validPairs = [];
+
+    let usableOutFlights = candidateOutFlights;
+    if (selection.out) {
+        usableOutFlights = candidateOutFlights.filter(f => f.date === selection.out.date && f.air === selection.out.air);
+    }
+
+    usableOutFlights.forEach(out => {
+        inFlights.forEach(inputFlight => {
+            if (new Date(inputFlight.date) <= new Date(out.date)) return;
+
+            const leaveDays = calculateLeave(out.date, inputFlight.date);
+            if (leaveDays > maxLeave) return;
+
+            if (selection.in && selection.in.date !== inputFlight.date) return;
+
+            validPairs.push({
+                outDate: out.date,
+                inDate: inputFlight.date,
+                totalPrice: getTripPrice(out, inputFlight)
+            });
+        });
+    });
+
+    if (validPairs.length === 0) {
+        return { outDates, inDates };
+    }
+
+    const bestPrice = Math.min(...validPairs.map(p => p.totalPrice));
+
+    validPairs
+        .filter(p => p.totalPrice === bestPrice)
+        .forEach(p => {
+            outDates.add(p.outDate);
+            inDates.add(p.inDate);
+        });
+
+    return { outDates, inDates };
+}
 
     function toggleRanking() {
     const sec = document.getElementById('rankingSection');
@@ -587,7 +659,7 @@
     var maxLeave = parseInt(document.getElementById('leaveFilter').value) || 99;
     var starluxOnly = document.getElementById('starluxOnly').checked;
 
-    // 先找出目前模式下、且符合星宇條件的所有可用去程
+    // 先找目前模式下可用的去程
     var candidateOutFlights = outFlights.filter(f => {
         if (f.type !== tripMode) return false;
         if (starluxOnly && f.air !== '星宇航空') return false;
@@ -595,9 +667,12 @@
         return true;
     });
 
+    // 算出目前條件下的最佳日期組合，用來加皇冠
+    var bestMarks = getBestCrownDates(candidateOutFlights, maxLeave);
+
     days.forEach(day => {
         var dStr = day.id.replace('day-', '');
-        day.className = day.className.replace(/has-out|has-in|disabled|clickable|selected-out|selected-in/g, '').trim();
+        day.className = day.className.replace(/has-out|has-in|disabled|clickable|selected-out|selected-in|best-crown/g, '').trim();
 
         // 去程邏輯
         var vOut = candidateOutFlights.filter(f => f.date === dStr);
@@ -606,13 +681,13 @@
         var vIn = inFlights.filter(f => {
             if (f.date !== dStr) return false;
 
-            // 已選去程：照原本邏輯判斷
+            // 已選去程：只看這個去程能不能搭
             if (selection.out) {
                 return new Date(f.date) > new Date(selection.out.date) &&
                        calculateLeave(selection.out.date, f.date) <= maxLeave;
             }
 
-            // 尚未選去程：只要存在任何一個可行去程，就保留這個回程日期
+            // 未選去程：只要有任一去程可搭，就保留
             return candidateOutFlights.some(out => {
                 return new Date(f.date) > new Date(out.date) &&
                        calculateLeave(out.date, f.date) <= maxLeave;
@@ -624,6 +699,11 @@
 
         if (selection.out && selection.out.date === dStr) day.classList.add('selected-out');
         if (selection.in && selection.in.date === dStr) day.classList.add('selected-in');
+
+        // 最佳選項加皇冠
+        if (bestMarks.outDates.has(dStr) || bestMarks.inDates.has(dStr)) {
+            day.classList.add('best-crown');
+        }
 
         if ((vOut.length > 0) || (vIn.length > 0)) {
             day.classList.add('clickable');
