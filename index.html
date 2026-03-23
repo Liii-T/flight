@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2027 航班假期規劃</title>
+    <title>2027 航班規劃 v2</title>
     <style>
         :root {
             --primary-out: #28a745;
@@ -17,376 +17,282 @@
             --radius: 16px;
         }
 
-        body { 
-            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; 
-            background: var(--bg-body); padding: 15px; color: var(--text-main); margin: 0; line-height: 1.5;
-        }
-
-        .container { 
-            max-width: 400px; margin: 0 auto; background: var(--bg-card); 
-            padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); 
-        }
-
+        body { font-family: 'PingFang TC', sans-serif; background: var(--bg-body); padding: 15px; color: var(--text-main); margin: 0; }
+        .container { max-width: 400px; margin: 0 auto; background: var(--bg-card); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); }
         .header { margin-bottom: 20px; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        h2 { margin: 0; font-size: 1.3em; letter-spacing: 1px; }
+        h2 { margin: 0; font-size: 1.3em; margin-bottom: 15px; }
 
-        .search-section {
+        .filter-section {
             background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 15px;
-            display: flex; align-items: center; gap: 10px; border: 1px solid #eee;
+            display: flex; flex-direction: column; gap: 10px; border: 1px solid #eee;
         }
-        .search-section label { font-size: 0.85em; font-weight: bold; color: var(--text-sub); }
-        .search-section input { 
-            flex: 1; border: 1px solid #ddd; padding: 6px 10px; border-radius: 8px; 
-            font-size: 0.9em; outline: none; transition: border 0.2s;
-        }
-        .search-section input:focus { border-color: var(--primary-in); }
-
+        .filter-row { display: flex; align-items: center; gap: 10px; font-size: 0.9em; font-weight: bold; }
+        .filter-row input[type="number"] { width: 60px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; }
+        
         .mode-selector { display: flex; background: #eee; padding: 4px; border-radius: 12px; margin-bottom: 15px; }
-        .mode-btn {
-            flex: 1; border: none; padding: 8px; border-radius: 10px; font-size: 0.85em; 
-            cursor: pointer; background: transparent; color: var(--text-sub); transition: all 0.2s; font-weight: bold;
-        }
+        .mode-btn { flex: 1; border: none; padding: 8px; border-radius: 10px; font-size: 0.85em; cursor: pointer; background: transparent; color: var(--text-sub); font-weight: bold; }
         .mode-btn.active { background: white; color: var(--text-main); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
 
-        .btn-reset { background: #dfe6e9; color: var(--text-sub); border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.8em; cursor: pointer; }
-
-        .calendar-section { display: flex; flex-direction: column; gap: 25px; }
-        .month-title { 
-            text-align: left; font-weight: 700; margin-bottom: 12px; font-size: 1.1em;
-            color: #2d3436; padding-left: 5px; border-left: 4px solid #0984e3;
-        }
-        .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-        .day-name { text-align: center; font-size: 0.7em; color: #b2bec3; font-weight: bold; margin-bottom: 5px; }
-        
-        .day { 
-            aspect-ratio: 1; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            font-size: 0.95em; position: relative; transition: all 0.2s; border: 1px solid transparent; background: #fdfdfd;
-        }
+        .calendar-section { display: flex; flex-direction: column; gap: 20px; }
+        .month-title { font-weight: 700; margin-bottom: 10px; border-left: 4px solid #0984e3; padding-left: 8px; }
+        .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+        .day-name { text-align: center; font-size: 0.7em; color: #b2bec3; }
+        .day { aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.9em; background: #fdfdfd; cursor: pointer; border: 1px solid transparent; }
         .day.holiday { color: var(--holiday-red); }
         .day.has-out { background: #e6f7ec; color: var(--primary-out); font-weight: bold; }
         .day.has-in { background: #e7f3ff; color: var(--primary-in); font-weight: bold; }
+        .day.selected-out { background: var(--primary-out) !important; color: white !important; }
+        .day.selected-in { background: var(--primary-in) !important; color: white !important; }
+        .day.disabled { opacity: 0.2; pointer-events: none; }
         
-        .price-hint { font-size: 0.55em; font-weight: normal; margin-top: 2px; color: #0984e3; white-space: nowrap; }
-
-        .day.selected-out { background: var(--primary-out) !important; color: white !important; box-shadow: 0 4px 10px rgba(40,167,69,0.3); transform: scale(1.1); z-index: 2; }
-        .day.selected-in { background: var(--primary-in) !important; color: white !important; box-shadow: 0 4px 10px rgba(0,123,255,0.3); transform: scale(1.1); z-index: 2; }
-        .day.disabled { opacity: 0.15; pointer-events: none; filter: grayscale(1); }
-        .day.clickable { cursor: pointer; }
-
-        .result-box { margin-top: 25px; background: #2d3436; color: white; padding: 18px; border-radius: var(--radius); }
+        .result-box { margin-top: 20px; background: #2d3436; color: white; padding: 15px; border-radius: 12px; display: none; }
         .res-grid { display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; }
-        .res-label { font-size: 0.7em; color: #b2bec3; margin-bottom: 4px; }
         .res-num { font-size: 1.1em; font-weight: bold; color: #ffe135; }
+        .res-label { font-size: 0.7em; color: #b2bec3; }
 
-        .btn-toggle-rank {
-            width: 100%; margin-top: 20px; padding: 12px; border-radius: 12px; border: 1px solid #ddd;
-            background: white; color: var(--text-main); font-weight: bold; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;
-        }
-        .btn-toggle-rank:hover { background: #f8f9fa; border-color: #ccc; }
-
-        .ranking-container { margin-top: 20px; border-top: 2px dashed #eee; padding-top: 20px; display: none; }
-        .ranking-title { font-size: 1.1em; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
-        .rank-card { 
-            background: #fff; border: 1px solid #f1f2f6; border-radius: 12px; 
-            padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border-left: 4px solid #dfe6e9;
-        }
-        .rank-card.top { border-left-color: #28a745; background: #f8fff9; }
-        .rank-tag { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.7em; font-weight: bold; margin-bottom: 6px; }
-        .tag-cp { background: #e3f2fd; color: #1976d2; }
-        .tag-days { background: #fff3e0; color: #f57c00; }
-        .tag-cheap { background: #e8f5e9; color: #2e7d32; }
-        .tag-overall { background: #f3e5f5; color: #7b1fa2; }
-        .tag-worst { background: #eceff1; color: #546e7a; }
-
-        .rank-info { font-size: 0.85em; font-weight: bold; margin-bottom: 4px; }
-        .rank-detail { font-size: 0.75em; color: var(--text-sub); }
-        .rank-price { font-size: 0.9em; color: #d63031; font-weight: bold; margin-top: 4px; }
-        .rank-price span { color: var(--text-sub); font-weight: normal; font-size: 0.85em; }
-
-        .saving-rank { background: #2d3436; color: #fff; padding: 15px; border-radius: 15px; margin-top: 15px; }
-        .saving-item { display: flex; justify-content: space-between; font-size: 0.8em; padding: 6px 0; border-bottom: 1px solid #444; }
-        .saving-num { color: #ffe135; font-weight: bold; width: 20px; }
-
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: none; z-index: 99; }
-        #modal { 
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
-            background: white; padding: 24px; border-radius: 24px; width: 90%; max-width: 360px; 
-            display: none; z-index: 100; box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        #modalTitle { margin: 0 0 15px 0; font-size: 1.2em; text-align: center; }
-        .opt-btn { width: 100%; text-align: left; padding: 15px; margin-bottom: 12px; border: 1px solid #f1f2f6; border-radius: 15px; background: #f8f9fa; }
-        .opt-row { display: flex; justify-content: space-between; align-items: center; }
-        .opt-air { font-weight: bold; color: #2d3436; }
-        .opt-price { color: #d63031; font-weight: 800; }
-        .opt-total-hint { align-self: flex-end; font-size: 0.8em; color: #28a745; font-weight: bold; background: #e6f7ec; padding: 2px 8px; border-radius: 6px; }
-        .opt-time { font-size: 0.85em; color: #636e72; }
-        .btn-close { width: 100%; border: none; background: none; color: #b2bec3; padding: 10px; cursor: pointer; }
-
-        @keyframes popIn { from { bottom: -100px; opacity: 0; } to { bottom: 20px; opacity: 1; } }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; z-index: 99; }
+        #modal { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: white; padding: 20px; border-radius: 20px; width: 85%; max-width: 340px; display: none; z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .opt-btn { width: 100%; text-align: left; padding: 12px; margin-bottom: 10px; border: 1px solid #eee; border-radius: 10px; background: #f8f9fa; cursor: pointer; }
+        .opt-price { color: #d63031; font-weight: bold; float: right; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <div class="header-top">
-            <h2>✈️ 2027 航班規劃</h2>
-            <button class="btn-reset" onclick="resetAll()">🔄 清除</button>
-        </div>
-
-        <div class="search-section">
-            <label>📅 特休天數上限:</label>
-            <input type="number" id="leaveFilter" placeholder="例如: 10" oninput="refreshUI()">
+        <h2>✈️ 2027 航班規劃</h2>
+        <div class="filter-section">
+            <div class="filter-row">
+                <label>📅 特休上限:</label>
+                <input type="number" id="leaveFilter" value="10" oninput="refreshUI()">
+                <span>天</span>
+            </div>
+            <div class="filter-row">
+                <input type="checkbox" id="starluxToggle" checked onchange="refreshUI()">
+                <label for="starluxToggle">包含星宇航空 (SEA 去程)</label>
+            </div>
         </div>
 
         <div class="mode-selector">
             <button id="mode-multi" class="mode-btn active" onclick="setTripMode('multi')">多點 (SEA/YVR)</button>
-            <button id="mode-yvr" class="mode-btn" onclick="setTripMode('yvr')">單點 (YVR進出)</button>
+            <button id="mode-yvr" class="mode-btn" onclick="setTripMode('yvr')">單點 (YVR)</button>
         </div>
     </div>
 
-    <div class="calendar-section" id="calendarRoot"></div>
+    <div id="calendarRoot" class="calendar-section"></div>
 
-    <div id="resultBox" class="result-box" style="display: none;">
+    <div id="resultBox" class="result-box">
         <div class="res-grid">
             <div><div class="res-label">總假期</div><div id="resTotal" class="res-num">-</div></div>
             <div><div class="res-label">需特休</div><div id="resLeave" class="res-num">-</div></div>
-            <div><div class="res-label">總預算</div><div id="resPrice" class="res-num">-</div></div>
+            <div><div class="res-label">總票價</div><div id="resPrice" class="res-num">-</div></div>
         </div>
+        <div id="resNote" style="font-size: 0.7em; margin-top: 8px; color: #ffe135; text-align: center;"></div>
     </div>
-
-    <button class="btn-toggle-rank" onclick="toggleRanking()">🏆 查看推薦排行榜</button>
-
-    <div id="rankingSection" class="ranking-container">
-        <div class="ranking-title">⭐ 模式推薦</div>
-        <div id="modeRankList"></div>
-        <div class="ranking-title" style="margin-top: 20px;">💰 省錢排行榜 (單日成本)</div>
-        <div class="saving-rank" id="savingRankList"></div>
-    </div>
+    
+    <button style="width:100%; margin-top:15px; padding:10px; border:none; border-radius:10px; background:#dfe6e9; cursor:pointer;" onclick="resetAll()">🔄 重置選擇</button>
 </div>
 
 <div class="overlay" id="overlay" onclick="closeModal()"></div>
 <div id="modal">
-    <h3 id="modalTitle">選擇航班</h3>
+    <h3 id="modalTitle" style="margin-top:0">選擇航班</h3>
     <div id="modalOptions"></div>
-    <button class="btn-close" onclick="closeModal()">關閉</button>
+    <button style="width:100%; background:none; border:none; color:#b2bec3;" onclick="closeModal()">關閉</button>
 </div>
 
 <script>
-    var tripMode = 'multi';
-    var selection = { out: null, in: null };
+    let tripMode = 'multi';
+    let selection = { out: null, in: null };
 
-    var outData = [
-        {id:'m_A', air:'星宇航空', date:'2027/02/26', time:'20:30-15:05', price:16881, rule:null, type:'multi'},
-        {id:'m_B', air:'長榮航空', date:'2027/02/22', time:'23:40-18:10', price:16346, rule:null, type:'multi'},
-        {id:'m_C', air:'長榮航空', date:'2027/02/23', time:'23:40-18:10', price:16346, rule:null, type:'multi'},
-        {id:'m_D', air:'長榮航空', date:'2027/02/24', time:'23:40-18:10', price:16346, rule:null, type:'multi'},
-        {id:'m_E', air:'長榮航空', date:'2027/02/25', time:'23:40-18:10', price:16346, rule:null, type:'multi'},
-        {id:'m_F', air:'長榮航空', date:'2027/02/26', time:'23:40-18:10', price:17316, rule:null, type:'multi'},
-        {id:'m_G', air:'長榮航空', date:'2027/02/27', time:'23:40-18:10', price:17316, rule:null, type:'multi'},
-        {id:'m_H', air:'長榮航空', date:'2027/02/28', time:'23:40-18:10', price:17316, rule:null, type:'multi'},
-        {id:'m_I', air:'長榮航空', date:'2027/03/01', time:'23:40-18:10', price:16346, rule:null, type:'multi'},
-        {id:'m_M', air:'長榮航空', date:'2027/02/27', time:'23:40-18:10', price:32315, rule:'in_a', type:'multi', note:'綁定回程3/13'},
-        {id:'m_N', air:'長榮航空', date:'2027/02/27', time:'23:40-18:10', price:32315, rule:'in_b', type:'multi', note:'綁定回程3/14'},
-        {id:'m_O', air:'長榮航空', date:'2027/02/26', time:'23:40-18:10', price:38329, rule:'in_a', type:'multi', note:'綁定回程3/13'},
-        {id:'y_A', air:'長榮航空', date:'2027/02/21', time:'23:55-18:35', price:17828, rule:null, type:'yvr'},
-        {id:'y_F', air:'長榮航空', date:'2027/02/26', time:'23:55-18:35', price:20447, rule:null, type:'yvr'}
+    // 資料定義
+    const outData = [
+        // YVR 單點 (EVA)
+        { date: '2027/02/21', price: 17828, air: '長榮航空', type: 'yvr' },
+        ...['2027/02/22', '2027/02/23', '2027/02/24', '2027/02/25', '2027/03/01', '2027/03/02', '2027/03/03'].map(d => ({ date: d, price: 19962, air: '長榮航空', type: 'yvr' })),
+        ...['2027/02/26', '2027/02/27', '2027/02/28'].map(d => ({ date: d, price: 20447, air: '長榮航空', type: 'yvr' })),
+        { date: '2027/03/04', price: 23357, air: '長榮航空', type: 'yvr' },
+        
+        // SEA 多點 (星宇)
+        ...['2027/02/21', '2027/02/22', '2027/02/23', '2027/02/24', '2027/02/25', '2027/02/26', '2027/02/27', '2027/02/28', '2027/03/01', '2027/03/02', '2027/03/03', '2027/03/04'].map(d => ({ date: d, price: 16881, air: '星宇航空', type: 'multi' })),
+        
+        // SEA 多點 (長榮套票 - 虛擬價格代表)
+        ...['2027/02/21', '2027/02/22', '2027/02/23', '2027/02/24', '2027/02/25', '2027/02/26', '2027/02/27', '2027/02/28', '2027/03/01', '2027/03/02', '2027/03/03', '2027/03/04'].map(d => ({ date: d, price: 0, air: '長榮航空', type: 'multi', isPackage: true }))
     ];
 
-    var inData = [
-        {id:'in_a', air:'長榮航空', date:'2027/03/13', land:'2027/03/14', time:'00:15-05:15(+1)', price:0, type:'multi', rule:['m_M', 'm_O']},
-        {id:'in_b', air:'長榮航空', date:'2027/03/14', land:'2027/03/15', time:'00:15-05:15(+1)', price:0, type:'multi', rule:['m_N']},
-        {id:'in_c', air:'長榮航空', date:'2027/03/14', land:'2027/03/15', time:'00:15-05:15(+1)', price:22544, type:'multi', rule:null},
-        {id:'in_d', air:'長榮航空', date:'2027/03/10', land:'2027/03/11', time:'00:15-05:15(+1)', price:19484, type:'multi', rule:null},
-        {id:'iy_a', air:'長榮航空', date:'2027/03/09', land:'2027/03/10', time:'00:15-05:15(+1)', price:18254, type:'yvr'},
-        {id:'iy_f', air:'長榮航空', date:'2027/03/14', land:'2027/03/15', time:'00:15-05:15(+1)', price:18254, type:'yvr'},
-        {id:'iy_g', air:'長榮航空', date:'2027/03/17', land:'2027/03/18', time:'00:15-05:15(+1)', price:16508, type:'yvr'},
-        {id:'in_e', air:'長榮航空', date:'2027/03/02', land:'2027/03/03', time:'00:15-05:15(+1)', price:19486, type:'multi'},
-        {id:'in_f', air:'長榮航空', date:'2027/03/03', land:'2027/03/04', time:'00:15-05:15(+1)', price:19486, type:'multi'},
-        {id:'in_g', air:'長榮航空', date:'2027/03/04', land:'2027/03/05', time:'00:15-05:15(+1)', price:21611, type:'multi'},
-        {id:'in_h', air:'長榮航空', date:'2027/03/05', land:'2027/03/06', time:'00:15-05:15(+1)', price:22547, type:'multi'},
-        {id:'in_i', air:'長榮航空', date:'2027/03/07', land:'2027/03/08', time:'00:15-05:15(+1)', price:20420, type:'multi'},
-        {id:'in_j', air:'長榮航空', date:'2027/03/08', land:'2027/03/09', time:'00:15-05:15(+1)', price:21611, type:'multi'}
+    const inData = [
+        // YVR 出發 (EVA 一般票)
+        { date: '2027/03/05', price: 18739, type: 'yvr' },
+        { date: '2027/03/06', price: 21358, type: 'yvr' },
+        { date: '2027/03/07', price: 16993, type: 'yvr' },
+        { date: '2027/03/08', price: 21358, type: 'yvr' },
+        { date: '2027/03/09', price: 18739, type: 'yvr' },
+        { date: '2027/03/10', price: 18739, type: 'yvr' },
+        { date: '2027/03/11', price: 18739, type: 'yvr' },
+        { date: '2027/03/12', price: 18739, type: 'yvr' },
+        { date: '2027/03/13', price: 24753, type: 'yvr' },
+        { date: '2027/03/14', price: 18739, type: 'yvr' },
+        { date: '2027/03/15', price: 21358, type: 'yvr' },
+        { date: '2027/03/16', price: 18739, type: 'yvr' },
+        { date: '2027/03/17', price: 16993, type: 'yvr' },
+        { date: '2027/03/18', price: 16993, type: 'yvr' },
+
+        // YVR 出發 (EVA 多點單程買)
+        { date: '2027/03/05', price: 22501, type: 'multi' },
+        { date: '2027/03/06', price: 24926, type: 'multi' },
+        { date: '2027/03/07', price: 20379, type: 'multi' },
+        { date: '2027/03/08', price: 21568, type: 'multi' },
+        { date: '2027/03/09', price: 23993, type: 'multi' },
+        { date: '2027/03/10', price: 19447, type: 'multi' },
+        { date: '2027/03/11', price: 19447, type: 'multi' },
+        { date: '2027/03/12', price: 24926, type: 'multi' },
+        { date: '2027/03/13', price: 27211, type: 'multi' },
+        { date: '2027/03/14', price: 22501, type: 'multi' },
+        { date: '2027/03/15', price: 26278, type: 'multi' },
+        { date: '2027/03/16', price: 23993, type: 'multi' },
+        { date: '2027/03/17', price: 18537, type: 'multi' },
+        { date: '2027/03/18', price: 18537, type: 'multi' },
+        
+        // 多點 (長榮套票用)
+        ...['2027/03/05','2027/03/06','2027/03/07','2027/03/08','2027/03/09','2027/03/10','2027/03/11','2027/03/12','2027/03/13','2027/03/14','2027/03/15','2027/03/16','2027/03/17','2027/03/18'].map(d => ({ date: d, price: 0, type: 'multi', isPackage: true }))
     ];
 
-    function calculateLeave(startStr, landStr) {
-        let start = new Date(startStr), land = new Date(landStr), leave = 0, curr = new Date(start);
-        while(curr <= land) {
-            let dStr = formatDate(curr.getFullYear(), curr.getMonth()+1, curr.getDate());
-            if(curr.getDay() !== 0 && curr.getDay() !== 6 && dStr !== '2027/03/01') leave++;
-            curr.setDate(curr.getDate() + 1);
+    function calculateLeave(s, e) {
+        let count = 0, cur = new Date(s), end = new Date(e);
+        while(cur <= end) {
+            let day = cur.getDay();
+            let dStr = formatDate(cur.getFullYear(), cur.getMonth()+1, cur.getDate());
+            // 排除週六(6)、週日(0) 及 2/28(和平紀念日), 3/1(補假)
+            if(day !== 0 && day !== 6 && dStr !== '2027/02/26' && dStr !== '2027/03/01') count++;
+            cur.setDate(cur.getDate() + 1);
         }
-        return leave;
+        return count;
     }
-
-    function toggleRanking() {
-        const sec = document.getElementById('rankingSection');
-        const btn = document.querySelector('.btn-toggle-rank');
-        const isHidden = sec.style.display === 'none' || sec.style.display === '';
-        sec.style.display = isHidden ? 'block' : 'none';
-        btn.innerHTML = isHidden ? '🔼 隱藏推薦排行榜' : '🏆 查看推薦排行榜';
-    }
-
-    function setTripMode(mode) {
-        if (selection.out || selection.in) { if (!confirm("重設選擇？")) return; }
-        tripMode = mode;
-        document.getElementById('mode-multi').classList.toggle('active', mode === 'multi');
-        document.getElementById('mode-yvr').classList.toggle('active', mode === 'yvr');
-        resetAll();
-    }
-
-    function formatDate(y, m, d) { return y + '/' + (m < 10 ? '0' + m : m) + '/' + (d < 10 ? '0' + d : d); }
 
     function refreshUI() {
-    
-        var days = document.querySelectorAll('.day');
-        var maxLeave = parseInt(document.getElementById('leaveFilter').value) || 99;
-
-        days.forEach(day => {
-            var dStr = day.id.replace('day-', '');
-            day.className = day.className.replace(/has-out|has-in|disabled|clickable|selected-out|selected-in/g, '').trim();
-            var oldHint = day.querySelector('.price-hint'); if(oldHint) oldHint.remove();
-
-            // 去程過濾：該日期是否有回程航班符合特休上限
-            var vOut = outData.filter(f => 
-                f.date === dStr && f.type === tripMode && 
-                (!selection.in || (new Date(f.date) < new Date(selection.in.date))) &&
-                (inData.some(inF => inF.type === tripMode && calculateLeave(f.date, inF.land) <= maxLeave))
-            );
-
-            // 回程過濾：如果已選去程，則需符合特休上限
-            var vIn = inData.filter(f => 
-                f.date === dStr && f.type === tripMode && 
-                (!selection.out || (new Date(f.date) > new Date(selection.out.date) && calculateLeave(selection.out.date, f.land) <= maxLeave))
-            );
-
-            if(vOut.length > 0) day.classList.add('has-out');
-            if(vIn.length > 0) day.classList.add('has-in');
+        const maxLeave = parseInt(document.getElementById('leaveFilter').value) || 99;
+        const useStar = document.getElementById('starluxToggle').checked;
+        
+        document.querySelectorAll('.day').forEach(el => {
+            const dStr = el.id.replace('day-', '');
+            el.className = el.className.replace(/has-out|has-in|selected-out|selected-in|disabled/g, '').trim();
             
-            if(selection.out && vIn.length > 0 && !selection.in) {
-                var minTotal = Math.min(...vIn.map(f => selection.out.price + f.price));
-                var hint = document.createElement('div'); hint.className = 'price-hint'; hint.innerText = `$${(minTotal/1000).toFixed(1)}k起`; day.appendChild(hint);
+            // 去程可選
+            const canOut = outData.filter(f => 
+                f.date === dStr && f.type === tripMode && 
+                (f.air !== '星宇航空' || useStar)
+            );
+            
+            // 回程可選
+            const canIn = inData.filter(f => f.date === dStr && f.type === tripMode);
+
+            if(canOut.length > 0 && !selection.in) el.classList.add('has-out');
+            if(canIn.length > 0 && selection.out) {
+                if(new Date(dStr) > new Date(selection.out.date) && calculateLeave(selection.out.date, dStr) <= maxLeave) {
+                    el.classList.add('has-in');
+                }
             }
 
-            if(selection.out && selection.out.date === dStr) day.classList.add('selected-out');
-            if(selection.in && selection.in.date === dStr) day.classList.add('selected-in');
-
-            // 禁用不符合條件的日期
-            var isPossibleOut = outData.some(f => f.date === dStr && f.type === tripMode);
-            var isPossibleIn = inData.some(f => f.date === dStr && f.type === tripMode);
-            if((isPossibleOut && vOut.length === 0) || (isPossibleIn && vIn.length === 0)) day.classList.add('disabled');
-            if(selection.out && isPossibleOut && selection.out.date !== dStr) day.classList.add('disabled');
-
-            if(vOut.length > 0 || vIn.length > 0) {
-                day.classList.add('clickable');
-                day.onclick = function() {
-                    if((selection.out && selection.out.date === dStr) || (selection.in && selection.in.date === dStr)) {
-                        if(confirm("重設？")) {
-                            if(selection.out && selection.out.date === dStr) selection.out = null;
-                            if(selection.in && selection.in.date === dStr) selection.in = null;
-                            refreshUI();
-                        } return;
-                    } openModal(dStr, vOut, vIn);
-                };
-            }
+            if(selection.out && selection.out.date === dStr) el.classList.add('selected-out');
+            if(selection.in && selection.in.date === dStr) el.classList.add('selected-in');
+            
+            // 範圍限制
+            if(new Date(dStr) < new Date('2027/02/19') || new Date(dStr) > new Date('2027/03/18')) el.classList.add('disabled');
         });
         updateResult();
-        updateRankings();}
-    
+    }
 
-    // 排行榜資料與更新
-    const rankData = {
-        multi: [
-            { tag: 'CP值最高', title: '2/27 ~ 3/14 長榮航空', detail: '旅遊17天 / 請10天', total: '47,315', sub: '機票$32,315 + 特休$15,000', class: 'tag-cp' },
-            { tag: '最多天數', title: '2/22 ~ 3/14 長榮航空', detail: '旅遊22天 / 請15天', total: '61,390', sub: '機票$38,890 + 特休$22,500', class: 'tag-days' },
-            { tag: '最便宜', title: '03/01 ~ 03/02 長榮航空', detail: '旅遊3天 / 請2天 (不可能選這個吧(⁰⊖⁰))', total: '38,832', sub: '機票$35,832 + 特休$3,000', class: 'tag-cheap' },
-            { tag: '綜合最佳', title: '2/27 ~ 3/14 長榮航空', detail: '旅遊17天 / 請10天', total: '47,315', sub: '機票$32,315 + 特休$15,000', class: 'tag-overall', top: true },
-            { tag: '最差選擇', title: '2/26 ~ 3/13 長榮航空', detail: '旅遊17天 / 請10天', total: '53,329', sub: '機票$38,329 + 特休$15,000', class: 'tag-worst' }
-        ],
-        yvr: [
-            { tag: 'CP值最高', title: '2/21 ~ 3/17 長榮航空', detail: '旅遊26天 / 請18天', total: '61,336', sub: '機票$34,336 + 特休$27,000', class: 'tag-cp', top: true },
-            { tag: '最多天數', title: '2/21 ~ 3/17 長榮航空', detail: '旅遊26天 / 請18天', total: '61,336', sub: '機票$34,336 + 特休$27,000', class: 'tag-days' },
-            { tag: '最便宜', title: '2/21 ~ 3/09 長榮航空', detail: '旅遊18天 / 請12天', total: '54,082', sub: '機票$36,082 + 特休$18,000', class: 'tag-cheap' },
-            { tag: '綜合最佳', title: '2/21 ~ 3/17 長榮航空', detail: '旅遊26天 / 請18天', total: '61,336', sub: '機票$34,336 + 特休$27,000', class: 'tag-overall' },
-            { tag: '最差選擇', title: '2/26 ~ 3/14 長榮航空', detail: '旅遊18天 / 請11天', total: '59,491', sub: '機票$42,991 + 特休$16,500', class: 'tag-worst' }
-        ]
-    };
-
-    function updateRankings() {
-        // 更新模式排行榜
-        const list = document.getElementById('modeRankList');
+    function openModal(dStr) {
+        const useStar = document.getElementById('starluxToggle').checked;
+        const list = document.getElementById('modalOptions');
         list.innerHTML = '';
-        rankData[tripMode].forEach(item => {
-            const card = document.createElement('div');
-            card.className = `rank-card ${item.top ? 'top' : ''}`;
-            card.innerHTML = `<span class="rank-tag ${item.class}">${item.tag}</span><div class="rank-info">${item.title}</div><div class="rank-detail">${item.detail}</div><div class="rank-price">$${item.total} <span>(${item.sub})</span></div>`;
-            list.appendChild(card);
-        });
-
-        // 更新省錢排行榜 (五則)
-        const saving = document.getElementById('savingRankList');
-        saving.innerHTML = `
-            <div class="saving-item"><span class="saving-num">1</span> <span>單點 2/21~3/17 (26天/18)</span> <b>$2,359/日</b></div>
-            <div class="saving-item"><span class="saving-num">2</span> <span>多點 2/27~3/14 (17天/10)</span> <b>$2,783/日</b></div>
-            <div class="saving-item"><span class="saving-num">3</span> <span>多點 2/22~3/14 (22天/15)</span> <b>$2,790/日</b></div>
-            <div class="saving-item"><span class="saving-num">4</span> <span>單點 2/21~3/09 (18天/12)</span> <b>$3,005/日</b></div>
-            <div class="saving-item"><span class="saving-num">5</span> <span>多點 2/22~3/10 (18天/13)</span> <b>$3,074/日</b></div>
-        `;
+        
+        if(!selection.out) {
+            document.getElementById('modalTitle').innerText = '🛫 選擇去程';
+            const opts = outData.filter(f => f.date === dStr && f.type === tripMode && (f.air !== '星宇航空' || useStar));
+            opts.forEach(f => {
+                const b = document.createElement('button');
+                b.className = 'opt-btn';
+                const pText = f.isPackage ? "套票價" : `$${f.price.toLocaleString()}`;
+                b.innerHTML = `<b>${f.air}</b> <span class="opt-price">${pText}</span>`;
+                b.onclick = () => { selection.out = f; refreshUI(); closeModal(); };
+                list.appendChild(b);
+            });
+        } else {
+            document.getElementById('modalTitle').innerText = '🛬 選擇回程';
+            const opts = inData.filter(f => f.date === dStr && f.type === tripMode && (f.isPackage === !!selection.out.isPackage));
+            opts.forEach(f => {
+                const b = document.createElement('button');
+                b.className = 'opt-btn';
+                const pText = f.isPackage ? "套票價" : `$${f.price.toLocaleString()}`;
+                b.innerHTML = `<b>長榮航空</b> <span class="opt-price">${pText}</span>`;
+                b.onclick = () => { selection.in = f; refreshUI(); closeModal(); };
+                list.appendChild(b);
+            });
+        }
+        document.getElementById('overlay').style.display = 'block';
+        document.getElementById('modal').style.display = 'block';
     }
-
-    function openModal(dateStr, vOut, vIn) {
-        var list = document.getElementById('modalOptions'); list.innerHTML = '';
-        var isOut = vOut.length > 0 && !selection.out;
-        document.getElementById('modalTitle').innerText = isOut ? '🛫 去程航班' : '🛬 回程航班';
-        (isOut ? vOut : vIn).forEach(f => {
-            var b = document.createElement('button'); b.className = 'opt-btn';
-            var totalHint = (!isOut && selection.out) ? `<div class="opt-total-hint">組合總價：$${(selection.out.price + f.price).toLocaleString()}</div>` : "";
-            b.innerHTML = `<div class="opt-row"><span class="opt-air">${f.air}</span><span class="opt-price">$${f.price.toLocaleString()}</span></div>${totalHint}<span class="opt-time">🕒 ${f.time}</span>`;
-            b.onclick = function() { if(isOut) selection.out = f; else selection.in = f; refreshUI(); closeModal(); };
-            list.appendChild(b);
-        });
-        document.getElementById('overlay').style.display = 'block'; document.getElementById('modal').style.display = 'block';
-    }
-
-    function closeModal() { document.getElementById('overlay').style.display = 'none'; document.getElementById('modal').style.display = 'none'; }
-    function resetAll() { selection = { out: null, in: null }; refreshUI(); }
 
     function updateResult() {
-        var box = document.getElementById('resultBox'); if(!selection.out || !selection.in) { box.style.display = 'none'; return; }
-        var start = new Date(selection.out.date), arrival = new Date(selection.in.land);
-        var total = Math.ceil((arrival - start) / 86400000) + 1;
-        var leave = calculateLeave(selection.out.date, selection.in.land);
+        const box = document.getElementById('resultBox');
+        if(!selection.out || !selection.in) { box.style.display = 'none'; return; }
+        
         box.style.display = 'block';
-        document.getElementById('resTotal').innerText = total + " 天";
-        document.getElementById('resLeave').innerText = leave + " 天";
-        document.getElementById('resPrice').innerText = "$" + (selection.out.price + selection.in.price).toLocaleString();
-    }
-
-    function renderMonth(year, month) {
-        var wrap = document.createElement('div'); wrap.className = 'month';
-        wrap.innerHTML = `<div class="month-title">${year} 年 ${month} 月</div>`;
-        var grid = document.createElement('div'); grid.className = 'grid';
-        var headers = ['日','一','二','三','四','五','六'];
-        headers.forEach(h => grid.innerHTML += `<div class="day-name">${h}</div>`);
-        var firstDay = new Date(year, month - 1, 1).getDay();
-        var totalDays = new Date(year, month, 0).getDate();
-        for(var i=0; i<firstDay; i++) grid.innerHTML += '<div></div>';
-        for(var d=1; d<=totalDays; d++) {
-            var dateStr = formatDate(year, month, d);
-            var div = document.createElement('div'); div.className = 'day'; div.id = 'day-' + dateStr; 
-            div.innerHTML = `<span class="d-num">${d}</span>`;
-            if(new Date(year, month - 1, d).getDay() % 6 === 0) div.classList.add('holiday');
-            grid.appendChild(div);
+        const days = Math.ceil((new Date(selection.in.date) - new Date(selection.out.date))/86400000) + 1;
+        const leave = calculateLeave(selection.out.date, selection.in.date);
+        
+        let totalPrice = 0;
+        let note = "";
+        if(selection.out.isPackage) {
+            totalPrice = 31000;
+            note = "※ 長榮多點套票：價格約在 30k~32k 之間變化";
+        } else {
+            totalPrice = selection.out.price + selection.in.price;
         }
-        wrap.appendChild(grid); return wrap;
+
+        document.getElementById('resTotal').innerText = days + " 天";
+        document.getElementById('resLeave').innerText = leave + " 天";
+        document.getElementById('resPrice').innerText = "$" + totalPrice.toLocaleString();
+        document.getElementById('resNote').innerText = note;
     }
 
-    var root = document.getElementById('calendarRoot');
-    root.appendChild(renderMonth(2027, 2)); root.appendChild(renderMonth(2027, 3));
+    function setTripMode(m) { tripMode = m; resetAll(); }
+    function resetAll() { 
+        selection = { out: null, in: null }; 
+        document.getElementById('mode-multi').classList.toggle('active', tripMode === 'multi');
+        document.getElementById('mode-yvr').classList.toggle('active', tripMode === 'yvr');
+        refreshUI(); 
+    }
+    function closeModal() { document.getElementById('overlay').style.display = 'none'; document.getElementById('modal').style.display = 'none'; }
+    function formatDate(y, m, d) { return `${y}/${m<10?'0'+m:m}/${d<10?'0'+d:d}`; }
+
+    function renderCalendar() {
+        const root = document.getElementById('calendarRoot');
+        [2, 3].forEach(m => {
+            const wrap = document.createElement('div');
+            wrap.innerHTML = `<div class="month-title">2027 年 ${m} 月</div>`;
+            const grid = document.createElement('div'); grid.className = 'grid';
+            ['日','一','二','三','四','五','六'].forEach(h => grid.innerHTML += `<div class="day-name">${h}</div>`);
+            
+            const first = new Date(2027, m-1, 1).getDay();
+            const total = new Date(2027, m, 0).getDate();
+            for(let i=0; i<first; i++) grid.innerHTML += '<div></div>';
+            for(let d=1; d<=total; d++) {
+                const dStr = formatDate(2027, m, d);
+                const el = document.createElement('div');
+                el.className = 'day'; el.id = 'day-' + dStr;
+                el.innerHTML = d;
+                if(new Date(dStr).getDay()%6===0) el.classList.add('holiday');
+                el.onclick = () => openModal(dStr);
+                grid.appendChild(el);
+            }
+            wrap.appendChild(grid); root.appendChild(wrap);
+        });
+    }
+
+    renderCalendar();
     refreshUI();
 </script>
+
 </body>
 </html>
