@@ -583,47 +583,60 @@
     function formatDate(y, m, d) { return y + '/' + (m < 10 ? '0' + m : m) + '/' + (d < 10 ? '0' + d : d); }
 
     function refreshUI() {
-        var days = document.querySelectorAll('.day');
-        var maxLeave = parseInt(document.getElementById('leaveFilter').value) || 99;
-        var starluxOnly = document.getElementById('starluxOnly').checked;
+    var days = document.querySelectorAll('.day');
+    var maxLeave = parseInt(document.getElementById('leaveFilter').value) || 99;
+    var starluxOnly = document.getElementById('starluxOnly').checked;
 
-        days.forEach(day => {
-            var dStr = day.id.replace('day-', '');
-            day.className = day.className.replace(/has-out|has-in|disabled|clickable|selected-out|selected-in/g, '').trim();
-            
-            // 去程邏輯
-            var vOut = outFlights.filter(f => {
-                if (f.date !== dStr || f.type !== tripMode) return false;
-                if (starluxOnly && f.air !== '星宇航空') return false;
-                if (!starluxOnly && f.air === '星宇航空') return false;
-                return true;
-            });
+    // 先找出目前模式下、且符合星宇條件的所有可用去程
+    var candidateOutFlights = outFlights.filter(f => {
+        if (f.type !== tripMode) return false;
+        if (starluxOnly && f.air !== '星宇航空') return false;
+        if (!starluxOnly && f.air === '星宇航空') return false;
+        return true;
+    });
 
-            // 回程邏輯
-            var vIn = inFlights.filter(f => {
-                if (f.date !== dStr) return false;
-                if (selection.out) {
-                    return new Date(f.date) > new Date(selection.out.date) && calculateLeave(selection.out.date, f.date) <= maxLeave;
-                }
-                return true;
-            });
+    days.forEach(day => {
+        var dStr = day.id.replace('day-', '');
+        day.className = day.className.replace(/has-out|has-in|disabled|clickable|selected-out|selected-in/g, '').trim();
 
-            if(vOut.length > 0) day.classList.add('has-out');
-            if(vIn.length > 0) day.classList.add('has-in');
+        // 去程邏輯
+        var vOut = candidateOutFlights.filter(f => f.date === dStr);
 
-            if(selection.out && selection.out.date === dStr) day.classList.add('selected-out');
-            if(selection.in && selection.in.date === dStr) day.classList.add('selected-in');
+        // 回程邏輯
+        var vIn = inFlights.filter(f => {
+            if (f.date !== dStr) return false;
 
-            if((vOut.length > 0) || (vIn.length > 0)) {
-                day.classList.add('clickable');
-                day.onclick = () => openModal(dStr, vOut, vIn);
-            } else {
-                day.classList.add('disabled');
+            // 已選去程：照原本邏輯判斷
+            if (selection.out) {
+                return new Date(f.date) > new Date(selection.out.date) &&
+                       calculateLeave(selection.out.date, f.date) <= maxLeave;
             }
+
+            // 尚未選去程：只要存在任何一個可行去程，就保留這個回程日期
+            return candidateOutFlights.some(out => {
+                return new Date(f.date) > new Date(out.date) &&
+                       calculateLeave(out.date, f.date) <= maxLeave;
+            });
         });
-        updateResult();
-        updateRankings();
-    }
+
+        if (vOut.length > 0) day.classList.add('has-out');
+        if (vIn.length > 0) day.classList.add('has-in');
+
+        if (selection.out && selection.out.date === dStr) day.classList.add('selected-out');
+        if (selection.in && selection.in.date === dStr) day.classList.add('selected-in');
+
+        if ((vOut.length > 0) || (vIn.length > 0)) {
+            day.classList.add('clickable');
+            day.onclick = () => openModal(dStr, vOut, vIn);
+        } else {
+            day.classList.add('disabled');
+            day.onclick = null;
+        }
+    });
+
+    updateResult();
+    updateRankings();
+}
 
 
   // 排行榜資料與更新
