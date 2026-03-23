@@ -142,6 +142,43 @@
             gap: 25px;
         }
 
+.calendar-legend {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 4px 0 14px;
+    padding: 10px 12px;
+    background: #f8f9fa;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    font-size: 0.82em;
+    color: #636e72;
+}
+
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+}
+
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+
+.legend-out {
+    background: #28a745;
+}
+
+.legend-in {
+    background: #007bff;
+}
+        
         .month-title {
             text-align: left;
             font-weight: 700;
@@ -506,6 +543,17 @@
         </div>
     </div>
 
+        <div class="calendar-legend">
+            <span class="legend-item">
+                <span class="legend-dot legend-out"></span>
+                綠色去程
+            </span>
+            <span class="legend-item">
+                <span class="legend-dot legend-in"></span>
+                藍色回程
+            </span>
+        </div>
+    
     <div class="calendar-section" id="calendarRoot"></div>
 
     <div id="resultBox" class="result-box" style="display: none;">
