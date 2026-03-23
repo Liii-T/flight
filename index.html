@@ -31,6 +31,17 @@
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         h2 { margin: 0; font-size: 1.3em; letter-spacing: 1px; }
 
+        .search-section {
+            background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 15px;
+            display: flex; align-items: center; gap: 10px; border: 1px solid #eee;
+        }
+        .search-section label { font-size: 0.85em; font-weight: bold; color: var(--text-sub); }
+        .search-section input { 
+            flex: 1; border: 1px solid #ddd; padding: 6px 10px; border-radius: 8px; 
+            font-size: 0.9em; outline: none; transition: border 0.2s;
+        }
+        .search-section input:focus { border-color: var(--primary-in); }
+
         .mode-selector { display: flex; background: #eee; padding: 4px; border-radius: 12px; margin-bottom: 15px; }
         .mode-btn {
             flex: 1; border: none; padding: 8px; border-radius: 10px; font-size: 0.85em; 
@@ -49,21 +60,54 @@
         .day-name { text-align: center; font-size: 0.7em; color: #b2bec3; font-weight: bold; margin-bottom: 5px; }
         
         .day { 
-            aspect-ratio: 1; border-radius: 10px; display: flex; align-items: center; justify-content: center; 
+            aspect-ratio: 1; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; 
             font-size: 0.95em; position: relative; transition: all 0.2s; border: 1px solid transparent; background: #fdfdfd;
         }
         .day.holiday { color: var(--holiday-red); }
         .day.has-out { background: #e6f7ec; color: var(--primary-out); font-weight: bold; }
         .day.has-in { background: #e7f3ff; color: var(--primary-in); font-weight: bold; }
+        
+        .price-hint { font-size: 0.55em; font-weight: normal; margin-top: 2px; color: #0984e3; white-space: nowrap; }
+
         .day.selected-out { background: var(--primary-out) !important; color: white !important; box-shadow: 0 4px 10px rgba(40,167,69,0.3); transform: scale(1.1); z-index: 2; }
         .day.selected-in { background: var(--primary-in) !important; color: white !important; box-shadow: 0 4px 10px rgba(0,123,255,0.3); transform: scale(1.1); z-index: 2; }
-        .day.disabled { opacity: 0.2; pointer-events: none; filter: grayscale(1); }
+        .day.disabled { opacity: 0.15; pointer-events: none; filter: grayscale(1); }
         .day.clickable { cursor: pointer; }
 
         .result-box { margin-top: 25px; background: #2d3436; color: white; padding: 18px; border-radius: var(--radius); }
         .res-grid { display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; }
         .res-label { font-size: 0.7em; color: #b2bec3; margin-bottom: 4px; }
         .res-num { font-size: 1.1em; font-weight: bold; color: #ffe135; }
+
+        .btn-toggle-rank {
+            width: 100%; margin-top: 20px; padding: 12px; border-radius: 12px; border: 1px solid #ddd;
+            background: white; color: var(--text-main); font-weight: bold; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;
+        }
+        .btn-toggle-rank:hover { background: #f8f9fa; border-color: #ccc; }
+
+        .ranking-container { margin-top: 20px; border-top: 2px dashed #eee; padding-top: 20px; display: none; }
+        .ranking-title { font-size: 1.1em; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .rank-card { 
+            background: #fff; border: 1px solid #f1f2f6; border-radius: 12px; 
+            padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border-left: 4px solid #dfe6e9;
+        }
+        .rank-card.top { border-left-color: #28a745; background: #f8fff9; }
+        .rank-tag { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.7em; font-weight: bold; margin-bottom: 6px; }
+        .tag-cp { background: #e3f2fd; color: #1976d2; }
+        .tag-days { background: #fff3e0; color: #f57c00; }
+        .tag-cheap { background: #e8f5e9; color: #2e7d32; }
+        .tag-overall { background: #f3e5f5; color: #7b1fa2; }
+        .tag-worst { background: #eceff1; color: #546e7a; }
+
+        .rank-info { font-size: 0.85em; font-weight: bold; margin-bottom: 4px; }
+        .rank-detail { font-size: 0.75em; color: var(--text-sub); }
+        .rank-price { font-size: 0.9em; color: #d63031; font-weight: bold; margin-top: 4px; }
+        .rank-price span { color: var(--text-sub); font-weight: normal; font-size: 0.85em; }
+
+        .saving-rank { background: #2d3436; color: #fff; padding: 15px; border-radius: 15px; margin-top: 15px; }
+        .saving-item { display: flex; justify-content: space-between; font-size: 0.8em; padding: 6px 0; border-bottom: 1px solid #444; }
+        .saving-num { color: #ffe135; font-weight: bold; width: 20px; }
 
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: none; z-index: 99; }
         #modal { 
@@ -73,16 +117,12 @@
             animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         #modalTitle { margin: 0 0 15px 0; font-size: 1.2em; text-align: center; }
-        .opt-btn { 
-            width: 100%; text-align: left; padding: 15px; margin-bottom: 12px; border: 1px solid #f1f2f6; 
-            border-radius: 15px; background: #f8f9fa; display: flex; flex-direction: column; gap: 4px;
-        }
+        .opt-btn { width: 100%; text-align: left; padding: 15px; margin-bottom: 12px; border: 1px solid #f1f2f6; border-radius: 15px; background: #f8f9fa; }
         .opt-row { display: flex; justify-content: space-between; align-items: center; }
         .opt-air { font-weight: bold; color: #2d3436; }
         .opt-price { color: #d63031; font-weight: 800; }
+        .opt-total-hint { align-self: flex-end; font-size: 0.8em; color: #28a745; font-weight: bold; background: #e6f7ec; padding: 2px 8px; border-radius: 6px; }
         .opt-time { font-size: 0.85em; color: #636e72; }
-        .opt-rule { font-size: 0.75em; color: #ff7675; font-weight: bold; }
-        .opt-arrival { font-size: 0.8em; color: #e67e22; margin-top: 4px; border-top: 1px solid #eee; padding-top: 4px; }
         .btn-close { width: 100%; border: none; background: none; color: #b2bec3; padding: 10px; cursor: pointer; }
 
         @keyframes popIn { from { bottom: -100px; opacity: 0; } to { bottom: 20px; opacity: 1; } }
@@ -96,6 +136,12 @@
             <h2>✈️ 2027 航班規劃</h2>
             <button class="btn-reset" onclick="resetAll()">🔄 清除</button>
         </div>
+
+        <div class="search-section">
+            <label>📅 特休天數上限:</label>
+            <input type="number" id="leaveFilter" placeholder="例如: 10" oninput="refreshUI()">
+        </div>
+
         <div class="mode-selector">
             <button id="mode-multi" class="mode-btn active" onclick="setTripMode('multi')">多點 (SEA/YVR)</button>
             <button id="mode-yvr" class="mode-btn" onclick="setTripMode('yvr')">單點 (YVR進出)</button>
@@ -111,6 +157,15 @@
             <div><div class="res-label">總預算</div><div id="resPrice" class="res-num">-</div></div>
         </div>
     </div>
+
+    <button class="btn-toggle-rank" onclick="toggleRanking()">🏆 查看推薦排行榜</button>
+
+    <div id="rankingSection" class="ranking-container">
+        <div class="ranking-title">⭐ 模式推薦</div>
+        <div id="modeRankList"></div>
+        <div class="ranking-title" style="margin-top: 20px;">💰 省錢排行榜 (單日成本)</div>
+        <div class="saving-rank" id="savingRankList"></div>
+    </div>
 </div>
 
 <div class="overlay" id="overlay" onclick="closeModal()"></div>
@@ -125,7 +180,6 @@
     var selection = { out: null, in: null };
 
     var outData = [
-        // 多點進出 (SEA)
         {id:'m_A', air:'星宇航空', date:'2027/02/26', time:'20:30-15:05', price:16881, rule:null, type:'multi'},
         {id:'m_B', air:'長榮航空', date:'2027/02/22', time:'23:40-18:10', price:16346, rule:null, type:'multi'},
         {id:'m_C', air:'長榮航空', date:'2027/02/23', time:'23:40-18:10', price:16346, rule:null, type:'multi'},
@@ -135,66 +189,186 @@
         {id:'m_G', air:'長榮航空', date:'2027/02/27', time:'23:40-18:10', price:17316, rule:null, type:'multi'},
         {id:'m_H', air:'長榮航空', date:'2027/02/28', time:'23:40-18:10', price:17316, rule:null, type:'multi'},
         {id:'m_I', air:'長榮航空', date:'2027/03/01', time:'23:40-18:10', price:16346, rule:null, type:'multi'},
-        {id:'m_J', air:'長榮航空', date:'2027/03/02', time:'23:40-18:10', price:16346, rule:null, type:'multi'},
-        {id:'m_K', air:'長榮航空', date:'2027/03/03', time:'23:40-18:10', price:16346, rule:null, type:'multi'},
-        {id:'m_L', air:'長榮航空', date:'2027/03/04', time:'23:40-18:10', price:16346, rule:null, type:'multi'},
-        {id:'m_M', air:'長榮航空', date:'2027/02/27', time:'23:40-18:10', price:32315, rule:'in_a', type:'multi', note:'必搭回程3/13'},
-        {id:'m_N', air:'長榮航空', date:'2027/02/27', time:'23:40-18:10', price:32315, rule:'in_b', type:'multi', note:'必搭回程3/14'},
-        {id:'m_O', air:'長榮航空', date:'2027/02/26', time:'23:40-18:10', price:38329, rule:'in_a', type:'multi', note:'必搭回程3/13'},
-
-        // 單點進出 (YVR) - New Update
+        {id:'m_M', air:'長榮航空', date:'2027/02/27', time:'23:40-18:10', price:32315, rule:'in_a', type:'multi', note:'綁定回程3/13'},
+        {id:'m_N', air:'長榮航空', date:'2027/02/27', time:'23:40-18:10', price:32315, rule:'in_b', type:'multi', note:'綁定回程3/14'},
+        {id:'m_O', air:'長榮航空', date:'2027/02/26', time:'23:40-18:10', price:38329, rule:'in_a', type:'multi', note:'綁定回程3/13'},
         {id:'y_A', air:'長榮航空', date:'2027/02/21', time:'23:55-18:35', price:17828, rule:null, type:'yvr'},
-        {id:'y_B', air:'長榮航空', date:'2027/02/22', time:'23:55-18:35', price:19962, rule:null, type:'yvr'},
-        {id:'y_C', air:'長榮航空', date:'2027/02/23', time:'23:55-18:35', price:19962, rule:null, type:'yvr'},
-        {id:'y_D', air:'長榮航空', date:'2027/02/24', time:'23:55-18:35', price:19962, rule:null, type:'yvr'},
-        {id:'y_E', air:'長榮航空', date:'2027/02/25', time:'23:55-18:35', price:19962, rule:null, type:'yvr'},
-        {id:'y_F', air:'長榮航空', date:'2027/02/26', time:'23:55-18:35', price:20447, rule:null, type:'yvr'},
-        {id:'y_G', air:'長榮航空', date:'2027/02/27', time:'23:55-18:35', price:20447, rule:null, type:'yvr'},
-        {id:'y_H', air:'長榮航空', date:'2027/02/28', time:'23:55-18:35', price:20447, rule:null, type:'yvr'},
-        {id:'y_I', air:'長榮航空', date:'2027/03/01', time:'23:55-18:35', price:19962, rule:null, type:'yvr'},
-        {id:'y_J', air:'長榮航空', date:'2027/03/02', time:'23:55-18:35', price:19962, rule:null, type:'yvr'},
-        {id:'y_K', air:'長榮航空', date:'2027/03/03', time:'23:55-18:35', price:19962, rule:null, type:'yvr'}
+        {id:'y_F', air:'長榮航空', date:'2027/02/26', time:'23:55-18:35', price:20447, rule:null, type:'yvr'}
     ];
 
     var inData = [
-        // 多點回程 (YVR)
-        {id:'in_a', air:'長榮航空', date:'2027/03/13', land:'2027/03/14', time:'00:15-05:15(+1)', price:0, type:'multi'},
-        {id:'in_b', air:'長榮航空', date:'2027/03/14', land:'2027/03/15', time:'00:15-05:15(+1)', price:0, type:'multi'},
-        {id:'in_c', air:'長榮航空', date:'2027/03/14', land:'2027/03/15', time:'00:15-05:15(+1)', price:22544, type:'multi'},
-        {id:'in_d', air:'長榮航空', date:'2027/03/10', land:'2027/03/11', time:'00:15-05:15(+1)', price:19484, type:'multi'},
-        {id:'in_e', air:'長榮航空', date:'2027/03/11', land:'2027/03/12', time:'00:15-05:15(+1)', price:19484, type:'multi'},
-
-        // 單點回程 (YVR) - New Update
+        {id:'in_a', air:'長榮航空', date:'2027/03/13', land:'2027/03/14', time:'00:15-05:15(+1)', price:0, type:'multi', rule:['m_M', 'm_O']},
+        {id:'in_b', air:'長榮航空', date:'2027/03/14', land:'2027/03/15', time:'00:15-05:15(+1)', price:0, type:'multi', rule:['m_N']},
+        {id:'in_c', air:'長榮航空', date:'2027/03/14', land:'2027/03/15', time:'00:15-05:15(+1)', price:22544, type:'multi', rule:null},
+        {id:'in_d', air:'長榮航空', date:'2027/03/10', land:'2027/03/11', time:'00:15-05:15(+1)', price:19484, type:'multi', rule:null},
         {id:'iy_a', air:'長榮航空', date:'2027/03/09', land:'2027/03/10', time:'00:15-05:15(+1)', price:18254, type:'yvr'},
-        {id:'iy_b', air:'長榮航空', date:'2027/03/10', land:'2027/03/11', time:'00:15-05:15(+1)', price:18254, type:'yvr'},
-        {id:'iy_c', air:'長榮航空', date:'2027/03/11', land:'2027/03/12', time:'00:15-05:15(+1)', price:18254, type:'yvr'},
-        {id:'iy_d', air:'長榮航空', date:'2027/03/12', land:'2027/03/13', time:'00:15-05:15(+1)', price:18254, type:'yvr'},
-        {id:'iy_e', air:'長榮航空', date:'2027/03/13', land:'2027/03/14', time:'00:15-05:15(+1)', price:24269, type:'yvr'},
         {id:'iy_f', air:'長榮航空', date:'2027/03/14', land:'2027/03/15', time:'00:15-05:15(+1)', price:18254, type:'yvr'},
         {id:'iy_g', air:'長榮航空', date:'2027/03/17', land:'2027/03/18', time:'00:15-05:15(+1)', price:16508, type:'yvr'},
-        {id:'iy_h', air:'長榮航空', date:'2027/03/18', land:'2027/03/19', time:'00:15-05:15(+1)', price:16508, type:'yvr'}
+        {id:'in_e', air:'長榮航空', date:'2027/03/02', land:'2027/03/03', time:'00:15-05:15(+1)', price:19486, type:'multi'},
+        {id:'in_f', air:'長榮航空', date:'2027/03/03', land:'2027/03/04', time:'00:15-05:15(+1)', price:19486, type:'multi'},
+        {id:'in_g', air:'長榮航空', date:'2027/03/04', land:'2027/03/05', time:'00:15-05:15(+1)', price:21611, type:'multi'},
+        {id:'in_h', air:'長榮航空', date:'2027/03/05', land:'2027/03/06', time:'00:15-05:15(+1)', price:22547, type:'multi'},
+        {id:'in_i', air:'長榮航空', date:'2027/03/07', land:'2027/03/08', time:'00:15-05:15(+1)', price:20420, type:'multi'},
+        {id:'in_j', air:'長榮航空', date:'2027/03/08', land:'2027/03/09', time:'00:15-05:15(+1)', price:21611, type:'multi'}
     ];
 
-    function setTripMode(mode) {
-        if (selection.out || selection.in) {
-            if (!confirm("切換模式將重設目前的選擇，是否繼續？")) return;
+    function calculateLeave(startStr, landStr) {
+        let start = new Date(startStr), land = new Date(landStr), leave = 0, curr = new Date(start);
+        while(curr <= land) {
+            let dStr = formatDate(curr.getFullYear(), curr.getMonth()+1, curr.getDate());
+            if(curr.getDay() !== 0 && curr.getDay() !== 6 && dStr !== '2027/03/01') leave++;
+            curr.setDate(curr.getDate() + 1);
         }
+        return leave;
+    }
+
+    function toggleRanking() {
+        const sec = document.getElementById('rankingSection');
+        const btn = document.querySelector('.btn-toggle-rank');
+        const isHidden = sec.style.display === 'none' || sec.style.display === '';
+        sec.style.display = isHidden ? 'block' : 'none';
+        btn.innerHTML = isHidden ? '🔼 隱藏推薦排行榜' : '🏆 查看推薦排行榜';
+    }
+
+    function setTripMode(mode) {
+        if (selection.out || selection.in) { if (!confirm("重設選擇？")) return; }
         tripMode = mode;
         document.getElementById('mode-multi').classList.toggle('active', mode === 'multi');
         document.getElementById('mode-yvr').classList.toggle('active', mode === 'yvr');
         resetAll();
     }
 
-    function formatDate(y, m, d) {
-        return y + '/' + (m < 10 ? '0' + m : m) + '/' + (d < 10 ? '0' + d : d);
+    function formatDate(y, m, d) { return y + '/' + (m < 10 ? '0' + m : m) + '/' + (d < 10 ? '0' + d : d); }
+
+    function refreshUI() {
+    
+        var days = document.querySelectorAll('.day');
+        var maxLeave = parseInt(document.getElementById('leaveFilter').value) || 99;
+
+        days.forEach(day => {
+            var dStr = day.id.replace('day-', '');
+            day.className = day.className.replace(/has-out|has-in|disabled|clickable|selected-out|selected-in/g, '').trim();
+            var oldHint = day.querySelector('.price-hint'); if(oldHint) oldHint.remove();
+
+            // 去程過濾：該日期是否有回程航班符合特休上限
+            var vOut = outData.filter(f => 
+                f.date === dStr && f.type === tripMode && 
+                (!selection.in || (new Date(f.date) < new Date(selection.in.date))) &&
+                (inData.some(inF => inF.type === tripMode && calculateLeave(f.date, inF.land) <= maxLeave))
+            );
+
+            // 回程過濾：如果已選去程，則需符合特休上限
+            var vIn = inData.filter(f => 
+                f.date === dStr && f.type === tripMode && 
+                (!selection.out || (new Date(f.date) > new Date(selection.out.date) && calculateLeave(selection.out.date, f.land) <= maxLeave))
+            );
+
+            if(vOut.length > 0) day.classList.add('has-out');
+            if(vIn.length > 0) day.classList.add('has-in');
+            
+            if(selection.out && vIn.length > 0 && !selection.in) {
+                var minTotal = Math.min(...vIn.map(f => selection.out.price + f.price));
+                var hint = document.createElement('div'); hint.className = 'price-hint'; hint.innerText = `$${(minTotal/1000).toFixed(1)}k起`; day.appendChild(hint);
+            }
+
+            if(selection.out && selection.out.date === dStr) day.classList.add('selected-out');
+            if(selection.in && selection.in.date === dStr) day.classList.add('selected-in');
+
+            // 禁用不符合條件的日期
+            var isPossibleOut = outData.some(f => f.date === dStr && f.type === tripMode);
+            var isPossibleIn = inData.some(f => f.date === dStr && f.type === tripMode);
+            if((isPossibleOut && vOut.length === 0) || (isPossibleIn && vIn.length === 0)) day.classList.add('disabled');
+            if(selection.out && isPossibleOut && selection.out.date !== dStr) day.classList.add('disabled');
+
+            if(vOut.length > 0 || vIn.length > 0) {
+                day.classList.add('clickable');
+                day.onclick = function() {
+                    if((selection.out && selection.out.date === dStr) || (selection.in && selection.in.date === dStr)) {
+                        if(confirm("重設？")) {
+                            if(selection.out && selection.out.date === dStr) selection.out = null;
+                            if(selection.in && selection.in.date === dStr) selection.in = null;
+                            refreshUI();
+                        } return;
+                    } openModal(dStr, vOut, vIn);
+                };
+            }
+        });
+        updateResult();
+        updateRankings();}
+    
+
+    // 排行榜資料與更新
+    const rankData = {
+        multi: [
+            { tag: 'CP值最高', title: '2/27 ~ 3/14 長榮航空', detail: '旅遊17天 / 請10天', total: '47,315', sub: '機票$32,315 + 特休$15,000', class: 'tag-cp' },
+            { tag: '最多天數', title: '2/22 ~ 3/14 長榮航空', detail: '旅遊22天 / 請15天', total: '61,390', sub: '機票$38,890 + 特休$22,500', class: 'tag-days' },
+            { tag: '最便宜', title: '03/01 ~ 03/02 長榮航空', detail: '旅遊3天 / 請2天 (不可能選這個吧(⁰⊖⁰))', total: '38,832', sub: '機票$35,832 + 特休$3,000', class: 'tag-cheap' },
+            { tag: '綜合最佳', title: '2/27 ~ 3/14 長榮航空', detail: '旅遊17天 / 請10天', total: '47,315', sub: '機票$32,315 + 特休$15,000', class: 'tag-overall', top: true },
+            { tag: '最差選擇', title: '2/26 ~ 3/13 長榮航空', detail: '旅遊17天 / 請10天', total: '53,329', sub: '機票$38,329 + 特休$15,000', class: 'tag-worst' }
+        ],
+        yvr: [
+            { tag: 'CP值最高', title: '2/21 ~ 3/17 長榮航空', detail: '旅遊26天 / 請18天', total: '61,336', sub: '機票$34,336 + 特休$27,000', class: 'tag-cp', top: true },
+            { tag: '最多天數', title: '2/21 ~ 3/17 長榮航空', detail: '旅遊26天 / 請18天', total: '61,336', sub: '機票$34,336 + 特休$27,000', class: 'tag-days' },
+            { tag: '最便宜', title: '2/21 ~ 3/09 長榮航空', detail: '旅遊18天 / 請12天', total: '54,082', sub: '機票$36,082 + 特休$18,000', class: 'tag-cheap' },
+            { tag: '綜合最佳', title: '2/21 ~ 3/17 長榮航空', detail: '旅遊26天 / 請18天', total: '61,336', sub: '機票$34,336 + 特休$27,000', class: 'tag-overall' },
+            { tag: '最差選擇', title: '2/26 ~ 3/14 長榮航空', detail: '旅遊18天 / 請11天', total: '59,491', sub: '機票$42,991 + 特休$16,500', class: 'tag-worst' }
+        ]
+    };
+
+    function updateRankings() {
+        // 更新模式排行榜
+        const list = document.getElementById('modeRankList');
+        list.innerHTML = '';
+        rankData[tripMode].forEach(item => {
+            const card = document.createElement('div');
+            card.className = `rank-card ${item.top ? 'top' : ''}`;
+            card.innerHTML = `<span class="rank-tag ${item.class}">${item.tag}</span><div class="rank-info">${item.title}</div><div class="rank-detail">${item.detail}</div><div class="rank-price">$${item.total} <span>(${item.sub})</span></div>`;
+            list.appendChild(card);
+        });
+
+        // 更新省錢排行榜 (五則)
+        const saving = document.getElementById('savingRankList');
+        saving.innerHTML = `
+            <div class="saving-item"><span class="saving-num">1</span> <span>單點 2/21~3/17 (26天/18)</span> <b>$2,359/日</b></div>
+            <div class="saving-item"><span class="saving-num">2</span> <span>多點 2/27~3/14 (17天/10)</span> <b>$2,783/日</b></div>
+            <div class="saving-item"><span class="saving-num">3</span> <span>多點 2/22~3/14 (22天/15)</span> <b>$2,790/日</b></div>
+            <div class="saving-item"><span class="saving-num">4</span> <span>單點 2/21~3/09 (18天/12)</span> <b>$3,005/日</b></div>
+            <div class="saving-item"><span class="saving-num">5</span> <span>多點 2/22~3/10 (18天/13)</span> <b>$3,074/日</b></div>
+        `;
+    }
+
+    function openModal(dateStr, vOut, vIn) {
+        var list = document.getElementById('modalOptions'); list.innerHTML = '';
+        var isOut = vOut.length > 0 && !selection.out;
+        document.getElementById('modalTitle').innerText = isOut ? '🛫 去程航班' : '🛬 回程航班';
+        (isOut ? vOut : vIn).forEach(f => {
+            var b = document.createElement('button'); b.className = 'opt-btn';
+            var totalHint = (!isOut && selection.out) ? `<div class="opt-total-hint">組合總價：$${(selection.out.price + f.price).toLocaleString()}</div>` : "";
+            b.innerHTML = `<div class="opt-row"><span class="opt-air">${f.air}</span><span class="opt-price">$${f.price.toLocaleString()}</span></div>${totalHint}<span class="opt-time">🕒 ${f.time}</span>`;
+            b.onclick = function() { if(isOut) selection.out = f; else selection.in = f; refreshUI(); closeModal(); };
+            list.appendChild(b);
+        });
+        document.getElementById('overlay').style.display = 'block'; document.getElementById('modal').style.display = 'block';
+    }
+
+    function closeModal() { document.getElementById('overlay').style.display = 'none'; document.getElementById('modal').style.display = 'none'; }
+    function resetAll() { selection = { out: null, in: null }; refreshUI(); }
+
+    function updateResult() {
+        var box = document.getElementById('resultBox'); if(!selection.out || !selection.in) { box.style.display = 'none'; return; }
+        var start = new Date(selection.out.date), arrival = new Date(selection.in.land);
+        var total = Math.ceil((arrival - start) / 86400000) + 1;
+        var leave = calculateLeave(selection.out.date, selection.in.land);
+        box.style.display = 'block';
+        document.getElementById('resTotal').innerText = total + " 天";
+        document.getElementById('resLeave').innerText = leave + " 天";
+        document.getElementById('resPrice').innerText = "$" + (selection.out.price + selection.in.price).toLocaleString();
     }
 
     function renderMonth(year, month) {
-        var wrap = document.createElement('div');
-        wrap.className = 'month';
+        var wrap = document.createElement('div'); wrap.className = 'month';
         wrap.innerHTML = `<div class="month-title">${year} 年 ${month} 月</div>`;
-        var grid = document.createElement('div');
-        grid.className = 'grid';
+        var grid = document.createElement('div'); grid.className = 'grid';
         var headers = ['日','一','二','三','四','五','六'];
         headers.forEach(h => grid.innerHTML += `<div class="day-name">${h}</div>`);
         var firstDay = new Date(year, month - 1, 1).getDay();
@@ -202,90 +376,12 @@
         for(var i=0; i<firstDay; i++) grid.innerHTML += '<div></div>';
         for(var d=1; d<=totalDays; d++) {
             var dateStr = formatDate(year, month, d);
-            var div = document.createElement('div');
-            div.className = 'day'; div.id = 'day-' + dateStr; div.innerText = d;
-            var dow = new Date(year, month - 1, d).getDay();
-            if(dow === 0 || dow === 6) div.classList.add('holiday');
+            var div = document.createElement('div'); div.className = 'day'; div.id = 'day-' + dateStr; 
+            div.innerHTML = `<span class="d-num">${d}</span>`;
+            if(new Date(year, month - 1, d).getDay() % 6 === 0) div.classList.add('holiday');
             grid.appendChild(div);
         }
-        wrap.appendChild(grid);
-        return wrap;
-    }
-
-    function refreshUI() {
-        var days = document.querySelectorAll('.day');
-        days.forEach(day => {
-            var dStr = day.id.replace('day-', '');
-            day.className = day.className.replace(/has-out|has-in|disabled|clickable|selected-out|selected-in/g, '').trim();
-
-            var vOut = outData.filter(f => f.date === dStr && f.type === tripMode && (!selection.in || (new Date(f.date) < new Date(selection.in.date) && (!f.rule || f.rule === selection.in.id))));
-            var vIn = inData.filter(f => f.date === dStr && f.type === tripMode && (!selection.out || (new Date(f.date) > new Date(selection.out.date) && (!selection.out.rule || selection.out.rule === f.id))));
-
-            if(vOut.length > 0) day.classList.add('has-out');
-            if(vIn.length > 0) day.classList.add('has-in');
-            if(selection.out && selection.out.date === dStr) day.classList.add('selected-out');
-            if(selection.in && selection.in.date === dStr) day.classList.add('selected-in');
-
-            var hasOutAny = outData.some(f => f.date === dStr && f.type === tripMode);
-            if(selection.out && hasOutAny && selection.out.date !== dStr) day.classList.add('disabled');
-            var hasInAny = inData.some(f => f.date === dStr && f.type === tripMode);
-            if(selection.in && hasInAny && selection.in.date !== dStr) day.classList.add('disabled');
-
-            if(vOut.length > 0 || vIn.length > 0) {
-                day.classList.add('clickable');
-                day.onclick = function() {
-                    if((selection.out && selection.out.date === dStr) || (selection.in && selection.in.date === dStr)) {
-                        if(confirm("取消此日期選擇？")) {
-                            if(selection.out && selection.out.date === dStr) selection.out = null;
-                            if(selection.in && selection.in.date === dStr) selection.in = null;
-                            refreshUI();
-                        }
-                        return;
-                    }
-                    openModal(dStr, vOut, vIn);
-                };
-            }
-        });
-        updateResult();
-    }
-
-    function openModal(dateStr, vOut, vIn) {
-        var list = document.getElementById('modalOptions');
-        list.innerHTML = '';
-        var isOut = vOut.length > 0 && !selection.out;
-        document.getElementById('modalTitle').innerText = isOut ? '🛫 去程航班' : '🛬 回程航班';
-
-        (isOut ? vOut : vIn).forEach(f => {
-            var b = document.createElement('button');
-            b.className = 'opt-btn';
-            var ruleTag = f.note ? `<span class="opt-rule">(${f.note})</span>` : '';
-            var landTag = f.land ? `<span class="opt-arrival">🗓️ 抵台：${f.land}</span>` : '';
-            b.innerHTML = `<div class="opt-row"><span class="opt-air">${f.air}</span><span class="opt-price">$${f.price.toLocaleString()}</span></div>
-                           <span class="opt-time">🕒 ${f.time} ${ruleTag}</span>${landTag}`;
-            b.onclick = function() { if(isOut) selection.out = f; else selection.in = f; refreshUI(); closeModal(); };
-            list.appendChild(b);
-        });
-        document.getElementById('overlay').style.display = 'block';
-        document.getElementById('modal').style.display = 'block';
-    }
-
-    function closeModal() { document.getElementById('overlay').style.display = 'none'; document.getElementById('modal').style.display = 'none'; }
-    function resetAll() { selection = { out: null, in: null }; refreshUI(); }
-
-    function updateResult() {
-        var box = document.getElementById('resultBox');
-        if(!selection.out || !selection.in) { box.style.display = 'none'; return; }
-        var start = new Date(selection.out.date), arrival = new Date(selection.in.land);
-        var total = Math.ceil((arrival - start) / 86400000) + 1, leave = 0, curr = new Date(start);
-        while(curr <= arrival) {
-            var dStr = formatDate(curr.getFullYear(), curr.getMonth()+1, curr.getDate());
-            if(curr.getDay() !== 0 && curr.getDay() !== 6 && dStr !== '2027/03/01') leave++;
-            curr.setDate(curr.getDate() + 1);
-        }
-        box.style.display = 'block';
-        document.getElementById('resTotal').innerText = total + " 天";
-        document.getElementById('resLeave').innerText = leave + " 天";
-        document.getElementById('resPrice').innerText = "$" + (selection.out.price + selection.in.price).toLocaleString();
+        wrap.appendChild(grid); return wrap;
     }
 
     var root = document.getElementById('calendarRoot');
