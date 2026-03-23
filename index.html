@@ -177,12 +177,23 @@
         return leave;
     }
 
+
+    function toggleRanking() {
+        const sec = document.getElementById('rankingSection');
+        const btn = document.querySelector('.btn-toggle-rank');
+        const isHidden = sec.style.display === 'none' || sec.style.display === '';
+        sec.style.display = isHidden ? 'block' : 'none';
+        btn.innerHTML = isHidden ? '🔼 隱藏推薦排行榜' : '🏆 查看推薦排行榜';
+    }
+    
     function setTripMode(mode) {
+        if (selection.out || selection.in) { if (!confirm("重設選擇？")) return; }
         tripMode = mode;
         document.getElementById('mode-multi').classList.toggle('active', mode === 'multi');
         document.getElementById('mode-yvr').classList.toggle('active', mode === 'yvr');
         resetAll();
     }
+
 
     function formatDate(y, m, d) { return y + '/' + (m < 10 ? '0' + m : m) + '/' + (d < 10 ? '0' + d : d); }
 
@@ -226,8 +237,51 @@
             }
         });
         updateResult();
+        updateRankings();
     }
 
+
+  // 排行榜資料與更新
+    const rankData = {
+        multi: [
+            { tag: '綜合最佳', title: '02/27 ~ 03/14 長榮多點套票', detail: '旅遊 17 天 / 請 10 天', total: '47,000', sub: '機票 $32,000 + $15,000', class: 'tag-overall', top: true },
+            { tag: '星宇首選', title: '02/26 ~ 03/17 星宇+長榮', detail: '旅遊 21 天 / 請 14 天', total: '56,418', sub: '機票 $35,418 + $21,000', class: 'tag-cp' },
+            { tag: '小資首選', title: '02/27 ~ 03/7 長榮多點套票', detail: '旅遊 10 天 / 請 4 天', total: '38,000', sub: '機票 $32,000 + $6,000', class: 'tag-cheap' },
+        ],
+        yvr: [
+            { tag: '綜合最佳', title: '02/21 ~ 03/17 長榮單點', detail: '旅遊 26 天 / 請 18 天', total: '61,821', sub: '機票 $34,821 + $27,000', class: 'tag-overall', top: true },
+            { tag: '小資首選', title: '02/21 ~ 03/07 長榮單點', detail: '旅遊 16 天 / 請 10 天', total: '49,821', sub: '機票 $34,821 + $15,000', class: 'tag-cheap' },
+        ]
+    };
+
+    function updateRankings() {
+        // 更新模式排行榜
+        const list = document.getElementById('modeRankList');
+        list.innerHTML = '';
+        rankData[tripMode].forEach(item => {
+            const card = document.createElement('div');
+            card.className = `rank-card ${item.top ? 'top' : ''}`;
+            card.innerHTML = `
+                <span class="rank-tag ${item.class}">${item.tag}</span>
+                <div class="rank-info">${item.title}</div>
+                <div class="rank-detail">${item.detail}</div>
+                <div class="rank-price">$${item.total} <span>(${item.sub})</span></div>
+            `;
+            list.appendChild(card);
+        });
+
+        // 更新省錢排行榜 (按單日成本 Daily Cost 排序)
+        const saving = document.getElementById('savingRankList');
+        saving.innerHTML = `
+            <div class="saving-item"><span class="saving-num">1</span> <span>長榮單點 02/21~03/18 (26天/18)</span> <b>$2,269/日</b></div>
+            <div class="saving-item"><span class="saving-num">2</span> <span>長榮單點 02/21~03/17 (25天/17)</span> <b>$2,300/日</b></div>
+            <div class="saving-item"><span class="saving-num">3</span> <span>長榮多點 02/21~03/14 (22天/14)</span> <b>$2,409/日</b></div>
+            <div class="saving-item"><span class="saving-num">4</span> <span>星宇多點 02/26~03/17 (21天/13)</span> <b>$2,686/日</b></div>
+            <div class="saving-item"><span class="saving-num">5</span> <span>長榮單點 02/21~03/07 (16天/9)</span> <b>$2,843/日</b></div>
+            <div class="saving-item"><span class="saving-num">6</span> <span>長榮單點 02/21~03/7 (15天/9)</span> <b>$3,033/日</b></div>
+        `;
+    }
+    
     function openModal(dateStr, vOut, vIn) {
         var list = document.getElementById('modalOptions');
         list.innerHTML = '';
