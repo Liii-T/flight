@@ -475,6 +475,15 @@
             <label class="checkbox-container">
                 <input type="checkbox" id="starluxOnly" onchange="refreshUI()"> 優先搭乘星宇航空 (去程)
             </label>
+            <label class="checkbox-container">
+                <input type="checkbox" id="includeEtaEsta" onchange="refreshUI()">
+                價格包含 ETA (21 USD) + ESTA (7 CAD)
+            </label>
+
+            <label class="checkbox-container">
+                <input type="checkbox" id="includeAmtrak" onchange="refreshUI()">
+                價格包含 SEA → YVR 火車 Amtrak Cascades (40 USD)
+            </label>
         </div>
 
         <div class="mode-selector">
@@ -576,17 +585,18 @@
     }
 
     function getTripPrice(outFlight, inFlight) {
+    const addonCost = getAddonCostTWD();
+
     if (tripMode === 'yvr') {
-        return outFlight.price + inFlight.p_yvr;
+        return outFlight.price + inFlight.p_yvr + addonCost;
     }
 
     // 多點模式
     if (outFlight.air === '星宇航空') {
-        return outFlight.price + inFlight.p_multi;
+        return outFlight.price + inFlight.p_multi + addonCost;
     }
 
-    // 長榮多點套票，沿用你原本排行榜/結果的概念，固定抓 32000
-    return 32000;
+    return 32000 + addonCost;
 }
 
 function getBestCrownDates(candidateOutFlights, maxLeave) {
@@ -815,27 +825,35 @@ function getBestCrownDates(candidateOutFlights, maxLeave) {
 
     function updateResult() {
         var box = document.getElementById('resultBox');
-        if(!selection.out || !selection.in) { box.style.display = 'none'; return; }
+        if(!selection.out || !selection.in) {
+            box.style.display = 'none';
+            return;
+        }
         
         var start = new Date(selection.out.date), end = new Date(selection.in.date);
         var total = Math.ceil((end - start) / 86400000) + 1;
         var leave = calculateLeave(selection.out.date, selection.in.date);
+        var addonCost = getAddonCostTWD();
         
         box.style.display = 'block';
         document.getElementById('resTotal').innerText = total + " 天";
         document.getElementById('resLeave').innerText = leave + " 天";
-
+    
         let finalPriceText = "";
         if (tripMode === 'yvr') {
-            finalPriceText = "$" + (selection.out.price + selection.in.p_yvr).toLocaleString();
+            finalPriceText = "$" + (selection.out.price + selection.in.p_yvr + addonCost).toLocaleString();
         } else {
             // 多點模式
             if (selection.out.air === '星宇航空') {
-                finalPriceText = "$" + (selection.out.price + selection.in.p_multi).toLocaleString();
+                finalPriceText = "$" + (selection.out.price + selection.in.p_multi + addonCost).toLocaleString();
             } else {
-                finalPriceText = "約 30,000 ~ 32,000";
+                // 長榮多點套票區間價
+                const low = 30000 + addonCost;
+                const high = 32000 + addonCost;
+                finalPriceText = `約 ${low.toLocaleString()} ~ ${high.toLocaleString()}`;
             }
         }
+    
         document.getElementById('resPrice').innerText = finalPriceText;
     }
 
@@ -863,6 +881,31 @@ function getBestCrownDates(candidateOutFlights, maxLeave) {
         wrap.appendChild(grid); return wrap;
     }
 
+    const FX_RATE = {
+    USD_TO_TWD: 32,
+    CAD_TO_TWD: 24
+    };
+    
+    function getAddonCostTWD() {
+        const includeEtaEsta = document.getElementById('includeEtaEsta')?.checked;
+        const includeAmtrak = document.getElementById('includeAmtrak')?.checked;
+    
+        let addon = 0;
+    
+        // ETA + ESTA
+        if (includeEtaEsta) {
+            addon += 21 * FX_RATE.USD_TO_TWD;
+            addon += 7 * FX_RATE.CAD_TO_TWD;
+        }
+    
+        // SEA -> YVR 火車，只在多點模式計算
+        if (includeAmtrak && tripMode === 'multi') {
+            addon += 40 * FX_RATE.USD_TO_TWD;
+        }
+    
+        return Math.round(addon);
+    }
+    
     var root = document.getElementById('calendarRoot');
     root.appendChild(renderMonth(2027, 2)); 
     root.appendChild(renderMonth(2027, 3));
