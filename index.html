@@ -507,10 +507,10 @@
 </button>
 
 <div id="rankingSection" style="display:none; margin-top:16px;">
-    <h3>推薦排行榜</h3>
+    <h3>推薦排行榜(包含特休成本)</h3>
     <div id="modeRankList"></div>
 
-    <h3 style="margin-top:16px;">省錢排行榜</h3>
+    <h3 style="margin-top:16px;">省錢排行榜(平均單天成本)</h3>
     <div id="savingRankList"></div>
 </div>
 </div>
@@ -730,44 +730,65 @@ function getBestCrownDates(candidateOutFlights, maxLeave) {
 
 
   // 排行榜資料與更新
-    const rankData = {
-        multi: [
-            { tag: '綜合最佳', title: '02/27 ~ 03/14 長榮多點套票', detail: '旅遊 17 天 / 請 10 天', total: '47,000', sub: '機票 $32,000 + $15,000', class: 'tag-overall', top: true },
-            { tag: '星宇首選', title: '02/26 ~ 03/17 星宇+長榮', detail: '旅遊 21 天 / 請 14 天', total: '56,418', sub: '機票 $35,418 + $21,000', class: 'tag-cp' },
-            { tag: '小資首選', title: '02/27 ~ 03/7 長榮多點套票', detail: '旅遊 10 天 / 請 4 天', total: '38,000', sub: '機票 $32,000 + $6,000', class: 'tag-cheap' },
-        ],
-        yvr: [
-            { tag: '綜合最佳', title: '02/21 ~ 03/17 長榮單點', detail: '旅遊 26 天 / 請 18 天', total: '61,821', sub: '機票 $34,821 + $27,000', class: 'tag-overall', top: true },
-            { tag: '小資首選', title: '02/21 ~ 03/07 長榮單點', detail: '旅遊 16 天 / 請 10 天', total: '49,821', sub: '機票 $34,821 + $15,000', class: 'tag-cheap' },
-        ]
-    };
+const rankData = {
+    multi: [
+        { tag: 'CP值最佳', title: '02/27 ~ 03/14 長榮多點套票', tripDays: 17, leaveDays: 10, ticketPrice: 32000, class: 'tag-overall', top: true },
+        { tag: '星宇首選', title: '02/26 ~ 03/17 星宇+長榮', tripDays: 21, leaveDays: 14, ticketPrice: 35418, class: 'tag-cp' },
+        { tag: '小資首選', title: '02/27 ~ 03/07 長榮多點套票', tripDays: 10, leaveDays: 4, ticketPrice: 32000, class: 'tag-cheap' },
+    ],
+    yvr: [
+        { tag: 'CP值最佳', title: '02/21 ~ 03/17 長榮單點', tripDays: 26, leaveDays: 18, ticketPrice: 34821, class: 'tag-overall', top: true },
+        { tag: '小資首選', title: '02/21 ~ 03/07 長榮單點', tripDays: 16, leaveDays: 10, ticketPrice: 34821, class: 'tag-cheap' },
+    ]
+};
 
-    function updateRankings() {
+function updateRankings() {
     const list = document.getElementById('modeRankList');
     const saving = document.getElementById('savingRankList');
     if (!list || !saving) return;
 
     list.innerHTML = '';
+
+    const addon = getMandatoryAddonForRanking(tripMode);
+
     rankData[tripMode].forEach(item => {
+        const leaveCost = item.leaveDays * 1500;
+        const totalPrice = item.ticketPrice + leaveCost + addon;
+
         const card = document.createElement('div');
         card.className = `rank-card ${item.top ? 'top' : ''}`;
         card.innerHTML = `
             <span class="rank-tag ${item.class}">${item.tag}</span>
             <div class="rank-info">${item.title}</div>
-            <div class="rank-detail">${item.detail}</div>
-            <div class="rank-price">$${item.total} <span>(${item.sub})</span></div>
+            <div class="rank-detail">旅遊 ${item.tripDays} 天 / 請 ${item.leaveDays} 天</div>
+            <div class="rank-price">$${totalPrice.toLocaleString()} 
+                <span>(機票 $${item.ticketPrice.toLocaleString()} + 特休 $${leaveCost.toLocaleString()}${addon > 0 ? ` + 附加 $${addon.toLocaleString()}` : ''})</span>
+            </div>
         `;
         list.appendChild(card);
     });
 
-    saving.innerHTML = `
-        <div class="saving-item"><span class="saving-num">1</span> <span>長榮單點 02/21~03/18 (26天/18)</span> <b>$2,269/日</b></div>
-        <div class="saving-item"><span class="saving-num">2</span> <span>長榮單點 02/21~03/17 (25天/17)</span> <b>$2,300/日</b></div>
-        <div class="saving-item"><span class="saving-num">3</span> <span>長榮多點 02/21~03/14 (22天/14)</span> <b>$2,409/日</b></div>
-        <div class="saving-item"><span class="saving-num">4</span> <span>星宇多點 02/26~03/17 (21天/13)</span> <b>$2,686/日</b></div>
-        <div class="saving-item"><span class="saving-num">5</span> <span>長榮單點 02/21~03/07 (16天/9)</span> <b>$2,843/日</b></div>
-        <div class="saving-item"><span class="saving-num">6</span> <span>長榮單點 02/21~03/07 (15天/9)</span> <b>$3,033/日</b></div>
-    `;
+    // 省錢排行榜也要跟著模式重算，不要再寫死
+    const savingData = rankData[tripMode].map(item => {
+        const leaveCost = item.leaveDays * 1500;
+        const totalPrice = item.ticketPrice + leaveCost + addon;
+        const dailyCost = Math.round(totalPrice / item.tripDays);
+
+        return {
+            title: item.title,
+            tripDays: item.tripDays,
+            leaveDays: item.leaveDays,
+            dailyCost
+        };
+    }).sort((a, b) => a.dailyCost - b.dailyCost);
+
+    saving.innerHTML = savingData.map((item, idx) => `
+        <div class="saving-item">
+            <span class="saving-num">${idx + 1}</span>
+            <span>${item.title} (${item.tripDays}天/${item.leaveDays}天)</span>
+            <b>$${item.dailyCost.toLocaleString()}/日</b>
+        </div>
+    `).join('');
 }
     
     function openModal(dateStr, vOut, vIn) {
@@ -886,6 +907,17 @@ function getBestCrownDates(candidateOutFlights, maxLeave) {
     CAD_TO_TWD: 24
     };
     
+    function getMandatoryAddonForRanking(mode) {
+    let addon = 0;
+
+    if (mode === 'multi') {
+        addon += 21 * FX_RATE.USD_TO_TWD; // ETA
+        addon += 7 * FX_RATE.CAD_TO_TWD;  // ESTA
+        addon += 40 * FX_RATE.USD_TO_TWD; // Amtrak
+    }
+
+    return Math.round(addon);
+}
     function getAddonCostTWD() {
         const includeEtaEsta = document.getElementById('includeEtaEsta')?.checked;
         const includeAmtrak = document.getElementById('includeAmtrak')?.checked;
