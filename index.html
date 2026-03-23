@@ -465,7 +465,7 @@
     <div class="header">
         <div class="header-top">
             <h2>✈️ 2027 極光航班規劃
-            <span style="display:block; font-size:0.75em; font-weight:normal; color:#636e72; margin-top:4px;">
+            <span style="display:block; font-size:0.5em; font-weight:normal; color:#636e72; margin-top:4px;">
             （2026/03/23 更新價格）
         </span>
             </h2>
@@ -475,7 +475,7 @@
         <div class="search-section">
             <div class="filter-row">
                 <label>📅 特休上限:</label>
-                <input type="number" id="leaveFilter" placeholder="10" oninput="refreshUI()">
+                <input type="number" id="leaveFilter" placeholder="10" inputmode="numeric" oninput="refreshUI()">
             </div>
             <label class="checkbox-container">
                 <input type="checkbox" id="starluxOnly" onchange="refreshUI()"> 優先搭乘星宇航空 (去程)
@@ -497,10 +497,10 @@
 
         <div class="mode-selector">
             <button id="mode-multi" class="mode-btn active" onclick="setTripMode('multi')">多點<br>
-                <span style="display:block; font-size:0.75em; font-weight:normal; color:#636e72; margin-top:4px;">
+                <span style="display:block; font-size:0.5em; font-weight:normal; color:#636e72; margin-top:4px;">
             （西雅圖SEA進/溫哥華YVR出）
         </span></button>
-            <button id="mode-yvr" class="mode-btn" onclick="setTripMode('yvr')">單點<br> <span style="display:block; font-size:0.75em; font-weight:normal; color:#636e72; margin-top:4px;">
+            <button id="mode-yvr" class="mode-btn" onclick="setTripMode('yvr')">單點<br> <span style="display:block; font-size:0.5em; font-weight:normal; color:#636e72; margin-top:4px;">
             (溫哥華YVR進出）
         </span></button>
         </div>
