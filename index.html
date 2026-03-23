@@ -3,65 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>航班假期規劃助手</title>
+    <title>2027 航班假期規劃</title>
     <style>
-        :root { --out-color: #2e7d32; --in-color: #1565c0; --holiday-red: #d32f2f; }
-        body { font-family: -apple-system, sans-serif; background: #f4f7f9; padding: 10px; color: #333; margin: 0; }
-        .container { max-width: 100%; margin: 0 auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .btn-reset { background: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 0.9em; cursor: pointer; }
-        .calendar-section { display: flex; flex-direction: column; gap: 20px; align-items: center; }
-        .month { width: 100%; max-width: 320px; }
-        .month-title { text-align: center; font-weight: bold; margin-bottom: 10px; }
-        .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-        .day-name { text-align: center; font-size: 0.75em; color: #999; }
-        .day { aspect-ratio: 1; border: 1px solid #f0f0f0; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9em; position: relative; }
-        .day.clickable { cursor: pointer; }
-        .day.has-out { background: #e8f5e9; color: var(--out-color); font-weight: bold; border-color: #c8e6c9; }
-        .day.has-in { background: #e3f2fd; color: var(--in-color); font-weight: bold; border-color: #bbdefb; }
+        :root {
+            --primary-out: #28a745;
+            --primary-in: #007bff;
+            --bg-body: #f0f2f5;
+            --bg-card: #ffffff;
+            --text-main: #2d3436;
+            --text-sub: #636e72;
+            --holiday-red: #ff7675;
+            --shadow: 0 4px 15px rgba(0,0,0,0.08);
+            --radius: 16px;
+        }
+
+        body { 
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; 
+            background: var(--bg-body); 
+            padding: 15px; 
+            color: var(--text-main); 
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .container { 
+            max-width: 400px; 
+            margin: 0 auto; 
+            background: var(--bg-card); 
+            padding: 20px; 
+            border-radius: var(--radius); 
+            box-shadow: var(--shadow); 
+        }
+
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 25px; 
+        }
+
+        h2 { margin: 0; font-size: 1.4em; letter-spacing: 1px; }
+
+        .btn-reset { 
+            background: #dfe6e9; 
+            color: var(--text-sub); 
+            border: none; 
+            padding: 6px 12px; 
+            border-radius: 20px; 
+            font-size: 0.85em; 
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-reset:active { transform: scale(0.95); background: #b2bec3; }
+
+        /* 日曆樣式優化 */
+        .calendar-section { display: flex; flex-direction: column; gap: 25px; }
+        .month-title { 
+            text-align: left; 
+            font-weight: 700; 
+            margin-bottom: 12px; 
+            font-size: 1.1em;
+            color: #2d3436;
+            padding-left: 5px;
+            border-left: 4px solid #0984e3;
+        }
+        .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+        .day-name { text-align: center; font-size: 0.7em; color: #b2bec3; font-weight: bold; margin-bottom: 5px; }
+        
+        .day { 
+            aspect-ratio: 1; 
+            border-radius: 10px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 0.95em; 
+            position: relative; 
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            background: #fdfdfd;
+        }
+
         .day.holiday { color: var(--holiday-red); }
-        .day.selected-out { background: var(--out-color) !important; color: white !important; }
-        .day.selected-in { background: var(--in-color) !important; color: white !important; }
-        .day.disabled { background: #fafafa !important; color: #ccc !important; opacity: 0.4; pointer-events: none; }
-        .result-box { margin-top: 20px; background: #2c3e50; color: white; padding: 15px; border-radius: 10px; display: none; }
+        .day.has-out { background: #e6f7ec; color: var(--primary-out); font-weight: bold; }
+        .day.has-in { background: #e7f3ff; color: var(--primary-in); font-weight: bold; }
+        
+        /* 選中狀態 */
+        .day.selected-out { background: var(--primary-out) !important; color: white !important; box-shadow: 0 4px 10px rgba(40,167,69,0.3); transform: scale(1.1); z-index: 2; }
+        .day.selected-in { background: var(--primary-in) !important; color: white !important; box-shadow: 0 4px 10px rgba(0,123,255,0.3); transform: scale(1.1); z-index: 2; }
+        
+        .day.disabled { opacity: 0.2; pointer-events: none; filter: grayscale(1); }
+        .day.clickable:active { transform: scale(0.9); }
+
+        /* 結果顯示區域 */
+        .result-box { 
+            margin-top: 25px; 
+            background: #2d3436; 
+            color: white; 
+            padding: 18px; 
+            border-radius: var(--radius); 
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+        
         .res-grid { display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; }
-        .res-num { font-size: 1.2em; font-weight: bold; color: #f1c40f; }
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; z-index: 99; }
-        #modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 12px; width: 85%; max-width: 320px; display: none; z-index: 100; box-sizing: border-box; }
-        .opt-btn { width: 100%; text-align: left; padding: 12px; margin: 8px 0; border: 1px solid #eee; border-radius: 8px; background: white; }
-        .flight-time { font-size: 0.85em; color: #666; display: block; }
-        .flight-price { color: #d32f2f; font-weight: bold; }
-        .arrival-tag { font-size: 0.8em; color: #e67e22; border-top: 1px dashed #eee; padding-top: 5px; display: block; }
+        .res-label { font-size: 0.7em; color: #b2bec3; margin-bottom: 4px; }
+        .res-num { font-size: 1.1em; font-weight: bold; color: #ffe135; }
+
+        /* 彈窗樣式 */
+        .overlay { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); 
+            backdrop-filter: blur(4px); display: none; z-index: 99; 
+        }
+        #modal { 
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
+            background: white; padding: 24px; border-radius: 24px; 
+            width: 90%; max-width: 360px; display: none; z-index: 100; 
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { bottom: -100px; opacity: 0; } to { bottom: 20px; opacity: 1; } }
+
+        #modalTitle { margin: 0 0 15px 0; font-size: 1.2em; text-align: center; color: var(--text-main); }
+
+        /* 航班選項按鈕 */
+        .opt-btn { 
+            width: 100%; text-align: left; padding: 15px; margin-bottom: 12px; 
+            border: 1px solid #f1f2f6; border-radius: 15px; background: #f8f9fa;
+            display: flex; flex-direction: column; gap: 4px; transition: all 0.2s;
+        }
+        .opt-btn:hover { border-color: #0984e3; background: #ebf7ff; }
+        .opt-row { display: flex; justify-content: space-between; align-items: center; }
+        .opt-air { font-weight: bold; font-size: 1em; color: #2d3436; }
+        .opt-price { color: #d63031; font-weight: 800; font-size: 1.1em; }
+        .opt-time { font-size: 0.85em; color: #636e72; }
+        .opt-arrival { font-size: 0.8em; color: #e67e22; margin-top: 4px; border-top: 1px solid #eee; padding-top: 4px; }
+
+        .btn-close { 
+            width: 100%; border: none; background: none; color: #b2bec3; 
+            padding: 10px; margin-top: 5px; font-size: 0.9em; cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h2>✈️ 2027 航班配對</h2>
-        <button class="btn-reset" onclick="resetAll()">🔄 清除</button>
+        <h2>✈️ 航班配對助教</h2>
+        <button class="btn-reset" onclick="resetAll()">🔄 清除選擇</button>
     </div>
 
     <div class="calendar-section" id="calendarRoot"></div>
 
-    <div id="resultBox" class="result-box">
+    <div id="resultBox" class="result-box" style="display: none;">
         <div class="res-grid">
-            <div><div style="font-size:0.7em">總假期</div><div id="resTotal" class="res-num">-</div></div>
-            <div><div style="font-size:0.7em">需特休</div><div id="resLeave" class="res-num">-</div></div>
-            <div><div style="font-size:0.7em">總預算</div><div id="resPrice" class="res-num">-</div></div>
+            <div><div class="res-label">總假期</div><div id="resTotal" class="res-num">-</div></div>
+            <div><div class="res-label">需特休</div><div id="resLeave" class="res-num">-</div></div>
+            <div><div class="res-label">預估預算</div><div id="resPrice" class="res-num">-</div></div>
         </div>
     </div>
 </div>
 
 <div class="overlay" id="overlay" onclick="closeModal()"></div>
 <div id="modal">
-    <h3 id="modalTitle" style="margin:0 0 10px 0; font-size:1.1em; border-bottom:1px solid #eee;">選擇航班</h3>
+    <h3 id="modalTitle">選擇航班</h3>
     <div id="modalOptions"></div>
-    <button onclick="closeModal()" style="width:100%; margin-top:10px; border:none; background:none; color:#999;">關閉</button>
+    <button class="btn-close" onclick="closeModal()">取消並關閉</button>
 </div>
 
 <script>
-    // 航班數據
     var outData = [
         {id:'A', air:'星宇航空', date:'2027/02/26', time:'20:30-15:05', price:16881, rule:null},
         {id:'B', air:'長榮航空', date:'2027/02/22', time:'23:40-18:10', price:16346, rule:null},
@@ -90,17 +199,14 @@
 
     var selection = { out: null, in: null };
 
-    // 助手函數：格式化日期為 YYYY/MM/DD
     function formatDate(y, m, d) {
-        var mm = m < 10 ? '0' + m : m;
-        var dd = d < 10 ? '0' + d : d;
-        return y + '/' + mm + '/' + dd;
+        return y + '/' + (m < 10 ? '0' + m : m) + '/' + (d < 10 ? '0' + d : d);
     }
 
     function renderMonth(year, month) {
         var wrap = document.createElement('div');
         wrap.className = 'month';
-        wrap.innerHTML = '<div class="month-title">' + year + '年 ' + month + '月</div>';
+        wrap.innerHTML = '<div class="month-title">' + year + ' 年 ' + month + ' 月</div>';
         var grid = document.createElement('div');
         grid.className = 'grid';
         var headers = ['日','一','二','三','四','五','六'];
@@ -149,19 +255,26 @@
             if(selection.out && selection.out.date === dStr) day.classList.add('selected-out');
             if(selection.in && selection.in.date === dStr) day.classList.add('selected-in');
 
-            // 獨佔邏輯
-            var hasOutAny = false;
-            for(var m=0; m<outData.length; m++) if(outData[m].date === dStr) hasOutAny = true;
+            // 互斥禁用邏輯
+            var hasOutAny = outData.some(f => f.date === dStr);
             if(selection.out && hasOutAny && selection.out.date !== dStr) day.classList.add('disabled');
-
-            var hasInAny = false;
-            for(var n=0; n<inData.length; n++) if(inData[n].date === dStr) hasInAny = true;
+            var hasInAny = inData.some(f => f.date === dStr);
             if(selection.in && hasInAny && selection.in.date !== dStr) day.classList.add('disabled');
 
             if(vOut.length > 0 || vIn.length > 0) {
                 day.classList.add('clickable');
                 (function(d, vo, vi){
                     day.onclick = function() {
+                        // 如果點擊已選中日期，詢問是否取消
+                        if((selection.out && selection.out.date === d) || (selection.in && selection.in.date === d)) {
+                            if(confirm("是否要取消並重設此日期的航班選擇？")) {
+                                if(selection.out && selection.out.date === d) selection.out = null;
+                                if(selection.in && selection.in.date === d) selection.in = null;
+                                refreshUI();
+                            }
+                            return;
+                        }
+
                         if((vo.length > 0 && selection.out && selection.out.date !== d) || (vi.length > 0 && selection.in && selection.in.date !== d)) {
                             if(confirm("切換日期將重設選擇，是否繼續？")) {
                                 selection = {out: null, in: null};
@@ -181,29 +294,33 @@
     function openModal(dateStr, vOut, vIn) {
         var list = document.getElementById('modalOptions');
         list.innerHTML = '';
-        if(vOut.length > 0 && !selection.out) {
-            for(var i=0; i<vOut.length; i++) {
-                (function(f){
-                    var b = document.createElement('button');
-                    b.className = 'opt-btn';
-                    var tag = f.rule ? '<span style="color:red; font-size:0.8em;">(有指定回程)</span>' : '';
-                    b.innerHTML = '<strong>' + f.air + '</strong>' + tag + '<span class="flight-time">🕒 ' + f.time + '</span><span class="flight-price">$' + f.price.toLocaleString() + '</span>';
-                    b.onclick = function() { selection.out = f; refreshUI(); closeModal(); };
-                    list.appendChild(b);
-                })(vOut[i]);
-            }
-        }
-        if(vIn.length > 0 && !selection.in) {
-            for(var i=0; i<vIn.length; i++) {
-                (function(f){
-                    var b = document.createElement('button');
-                    b.className = 'opt-btn';
-                    b.innerHTML = '<strong>' + f.air + '</strong><span class="flight-time">🕒 ' + f.time + '</span><span class="flight-price">$' + f.price.toLocaleString() + '</span><span class="arrival-tag">🗓️ 抵達台灣：' + f.land + '</span>';
-                    b.onclick = function() { selection.in = f; refreshUI(); closeModal(); };
-                    list.appendChild(b);
-                })(vIn[i]);
-            }
-        }
+        var isOut = vOut.length > 0 && !selection.out;
+        
+        document.getElementById('modalTitle').innerText = isOut ? '🛫 選擇去程航班' : '🛬 選擇回程航班';
+
+        var targetData = isOut ? vOut : vIn;
+        targetData.forEach(function(f){
+            var b = document.createElement('button');
+            b.className = 'opt-btn';
+            var tag = f.rule ? '<span style="color:var(--holiday-red); font-size:0.75em;">(限定搭配特定航班)</span>' : '';
+            var landInfo = f.land ? '<span class="opt-arrival">🗓️ 預計抵達台灣：' + f.land + '</span>' : '';
+            
+            b.innerHTML = `
+                <div class="opt-row">
+                    <span class="opt-air">${f.air}</span>
+                    <span class="opt-price">$${f.price.toLocaleString()}</span>
+                </div>
+                <span class="opt-time">🕒 ${f.time} ${tag}</span>
+                ${landInfo}
+            `;
+            b.onclick = function() { 
+                if(isOut) selection.out = f; else selection.in = f; 
+                refreshUI(); 
+                closeModal(); 
+            };
+            list.appendChild(b);
+        });
+
         document.getElementById('overlay').style.display = 'block';
         document.getElementById('modal').style.display = 'block';
     }
@@ -232,16 +349,16 @@
         while(curr <= arrival) {
             var dow = curr.getDay();
             var dStr = formatDate(curr.getFullYear(), curr.getMonth()+1, curr.getDate());
+            // 排除週六日與 3/1 補假
             if(dow !== 0 && dow !== 6 && dStr !== '2027/03/01') leave++;
             curr.setDate(curr.getDate() + 1);
         }
         box.style.display = 'block';
-        document.getElementById('resTotal').innerText = total + "天";
-        document.getElementById('resLeave').innerText = leave + "天";
+        document.getElementById('resTotal').innerText = total + " 天";
+        document.getElementById('resLeave').innerText = leave + " 天";
         document.getElementById('resPrice').innerText = "$" + (selection.out.price + selection.in.price).toLocaleString();
     }
 
-    // 立即初始化
     var root = document.getElementById('calendarRoot');
     root.innerHTML = '';
     root.appendChild(renderMonth(2027, 2));
