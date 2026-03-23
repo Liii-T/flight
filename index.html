@@ -106,6 +106,18 @@
             <div><div class="res-label">總預算</div><div id="resPrice" class="res-num">-</div></div>
         </div>
     </div>
+    
+    <button class="btn-reset btn-toggle-rank" onclick="toggleRanking()" style="margin-top:12px; width:100%;">
+        🏆 查看推薦排行榜
+    </button>
+    
+    <div id="rankingSection" style="display:none; margin-top:16px;">
+        <h3>推薦排行榜</h3>
+        <div id="modeRankList"></div>
+    
+        <h3 style="margin-top:16px;">省錢排行榜</h3>
+        <div id="savingRankList">
+    </div>
 </div>
 
 <div class="overlay" id="overlay" onclick="closeModal()"></div>
@@ -255,20 +267,23 @@
     };
 
     function updateRankings() {
-        // 更新模式排行榜
-        const list = document.getElementById('modeRankList');
-        list.innerHTML = '';
-        rankData[tripMode].forEach(item => {
-            const card = document.createElement('div');
-            card.className = `rank-card ${item.top ? 'top' : ''}`;
-            card.innerHTML = `
-                <span class="rank-tag ${item.class}">${item.tag}</span>
-                <div class="rank-info">${item.title}</div>
-                <div class="rank-detail">${item.detail}</div>
-                <div class="rank-price">$${item.total} <span>(${item.sub})</span></div>
-            `;
-            list.appendChild(card);
-        });
+    const list = document.getElementById('modeRankList');
+    const saving = document.getElementById('savingRankList');
+
+    if (!list || !saving) return;
+
+    list.innerHTML = '';
+    rankData[tripMode].forEach(item => {
+        const card = document.createElement('div');
+        card.className = `rank-card ${item.top ? 'top' : ''}`;
+        card.innerHTML = `
+            <span class="rank-tag ${item.class}">${item.tag}</span>
+            <div class="rank-info">${item.title}</div>
+            <div class="rank-detail">${item.detail}</div>
+            <div class="rank-price">$${item.total} <span>(${item.sub})</span></div>
+        `;
+        list.appendChild(card);
+    });
 
         // 更新省錢排行榜 (按單日成本 Daily Cost 排序)
         const saving = document.getElementById('savingRankList');
@@ -283,37 +298,57 @@
     }
     
     function openModal(dateStr, vOut, vIn) {
-        var list = document.getElementById('modalOptions');
-        list.innerHTML = '';
-        var isOutMode = vOut.length > 0 && !selection.out;
-        document.getElementById('modalTitle').innerText = isOutMode ? '🛫 選擇去程航班' : '🛬 選擇回程航班';
+    const isSelectedOut = selection.out && selection.out.date === dateStr;
+    const isSelectedIn = selection.in && selection.in.date === dateStr;
 
-        var flights = isOutMode ? vOut : vIn;
-        flights.forEach(f => {
-            var b = document.createElement('button');
-            b.className = 'opt-btn';
-            
-            let displayPrice = "";
-            if (isOutMode) {
-                displayPrice = f.isPackage ? "套票包含" : `$${f.price.toLocaleString()}`;
-                b.innerHTML = `<div class="opt-row"><span class="opt-air">${f.air}</span><span class="opt-price">${displayPrice}</span></div>`;
-            } else {
-                let p = (tripMode === 'yvr') ? f.p_yvr : f.p_multi;
-                displayPrice = `$${p.toLocaleString()}`;
-                b.innerHTML = `<div class="opt-row"><span class="opt-air">長榮航空</span><span class="opt-price">${displayPrice}</span></div>`;
-            }
+    if (isSelectedOut || isSelectedIn) {
+        const ok = confirm("是否要取消已勾選日期？");
+        if (!ok) return;
 
-            b.onclick = function() {
-                if(isOutMode) selection.out = f; 
-                else selection.in = f;
-                refreshUI();
-                closeModal();
-            };
-            list.appendChild(b);
-        });
-        document.getElementById('overlay').style.display = 'block';
-        document.getElementById('modal').style.display = 'block';
+        if (isSelectedOut) {
+            selection.out = null;
+            selection.in = null; // 去程取消時，回程也一起清掉
+        } else if (isSelectedIn) {
+            selection.in = null;
+        }
+
+        refreshUI();
+        return;
     }
+
+    var list = document.getElementById('modalOptions');
+    list.innerHTML = '';
+
+    var isOutMode = vOut.length > 0 && !selection.out;
+    document.getElementById('modalTitle').innerText = isOutMode ? '🛫 選擇去程航班' : '🛬 選擇回程航班';
+
+    var flights = isOutMode ? vOut : vIn;
+    flights.forEach(f => {
+        var b = document.createElement('button');
+        b.className = 'opt-btn';
+
+        let displayPrice = "";
+        if (isOutMode) {
+            displayPrice = f.isPackage ? "套票包含" : `$${f.price.toLocaleString()}`;
+            b.innerHTML = `<div class="opt-row"><span class="opt-air">${f.air}</span><span class="opt-price">${displayPrice}</span></div>`;
+        } else {
+            let p = (tripMode === 'yvr') ? f.p_yvr : f.p_multi;
+            displayPrice = `$${p.toLocaleString()}`;
+            b.innerHTML = `<div class="opt-row"><span class="opt-air">長榮航空</span><span class="opt-price">${displayPrice}</span></div>`;
+        }
+
+        b.onclick = function() {
+            if (isOutMode) selection.out = f;
+            else selection.in = f;
+            refreshUI();
+            closeModal();
+        };
+        list.appendChild(b);
+    });
+
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('modal').style.display = 'block';
+}
 
     function updateResult() {
         var box = document.getElementById('resultBox');
