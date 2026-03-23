@@ -108,16 +108,16 @@
     </div>
     
     <button class="btn-reset btn-toggle-rank" onclick="toggleRanking()" style="margin-top:12px; width:100%;">
-        🏆 查看推薦排行榜
-    </button>
-    
-    <div id="rankingSection" style="display:none; margin-top:16px;">
-        <h3>推薦排行榜</h3>
-        <div id="modeRankList"></div>
-    
-        <h3 style="margin-top:16px;">省錢排行榜</h3>
-        <div id="savingRankList">
-    </div>
+    🏆 查看推薦排行榜
+</button>
+
+<div id="rankingSection" style="display:none; margin-top:16px;">
+    <h3>推薦排行榜</h3>
+    <div id="modeRankList"></div>
+
+    <h3 style="margin-top:16px;">省錢排行榜</h3>
+    <div id="savingRankList"></div>
+</div>
 </div>
 
 <div class="overlay" id="overlay" onclick="closeModal()"></div>
@@ -191,12 +191,14 @@
 
 
     function toggleRanking() {
-        const sec = document.getElementById('rankingSection');
-        const btn = document.querySelector('.btn-toggle-rank');
-        const isHidden = sec.style.display === 'none' || sec.style.display === '';
-        sec.style.display = isHidden ? 'block' : 'none';
-        btn.innerHTML = isHidden ? '🔼 隱藏推薦排行榜' : '🏆 查看推薦排行榜';
-    }
+    const sec = document.getElementById('rankingSection');
+    const btn = document.querySelector('.btn-toggle-rank');
+    if (!sec || !btn) return;
+
+    const isHidden = sec.style.display === 'none' || sec.style.display === '';
+    sec.style.display = isHidden ? 'block' : 'none';
+    btn.innerHTML = isHidden ? '🔼 隱藏推薦排行榜' : '🏆 查看推薦排行榜';
+}
     
     function setTripMode(mode) {
         if (selection.out || selection.in) { if (!confirm("重設選擇？")) return; }
@@ -269,7 +271,6 @@
     function updateRankings() {
     const list = document.getElementById('modeRankList');
     const saving = document.getElementById('savingRankList');
-
     if (!list || !saving) return;
 
     list.innerHTML = '';
@@ -285,17 +286,15 @@
         list.appendChild(card);
     });
 
-        // 更新省錢排行榜 (按單日成本 Daily Cost 排序)
-        const saving = document.getElementById('savingRankList');
-        saving.innerHTML = `
-            <div class="saving-item"><span class="saving-num">1</span> <span>長榮單點 02/21~03/18 (26天/18)</span> <b>$2,269/日</b></div>
-            <div class="saving-item"><span class="saving-num">2</span> <span>長榮單點 02/21~03/17 (25天/17)</span> <b>$2,300/日</b></div>
-            <div class="saving-item"><span class="saving-num">3</span> <span>長榮多點 02/21~03/14 (22天/14)</span> <b>$2,409/日</b></div>
-            <div class="saving-item"><span class="saving-num">4</span> <span>星宇多點 02/26~03/17 (21天/13)</span> <b>$2,686/日</b></div>
-            <div class="saving-item"><span class="saving-num">5</span> <span>長榮單點 02/21~03/07 (16天/9)</span> <b>$2,843/日</b></div>
-            <div class="saving-item"><span class="saving-num">6</span> <span>長榮單點 02/21~03/7 (15天/9)</span> <b>$3,033/日</b></div>
-        `;
-    }
+    saving.innerHTML = `
+        <div class="saving-item"><span class="saving-num">1</span> <span>長榮單點 02/21~03/18 (26天/18)</span> <b>$2,269/日</b></div>
+        <div class="saving-item"><span class="saving-num">2</span> <span>長榮單點 02/21~03/17 (25天/17)</span> <b>$2,300/日</b></div>
+        <div class="saving-item"><span class="saving-num">3</span> <span>長榮多點 02/21~03/14 (22天/14)</span> <b>$2,409/日</b></div>
+        <div class="saving-item"><span class="saving-num">4</span> <span>星宇多點 02/26~03/17 (21天/13)</span> <b>$2,686/日</b></div>
+        <div class="saving-item"><span class="saving-num">5</span> <span>長榮單點 02/21~03/07 (16天/9)</span> <b>$2,843/日</b></div>
+        <div class="saving-item"><span class="saving-num">6</span> <span>長榮單點 02/21~03/07 (15天/9)</span> <b>$3,033/日</b></div>
+    `;
+}
     
     function openModal(dateStr, vOut, vIn) {
     const isSelectedOut = selection.out && selection.out.date === dateStr;
