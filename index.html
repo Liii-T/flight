@@ -469,7 +469,7 @@
             （2026/03/23 更新價格）
         </span>
             </h2>
-            <button class="btn-reset" onclick="resetAll()">🔄 清除</button>
+            <button class="btn-reset" onclick="resetAll()">🔄 重置</button>
         </div>
 
         <div class="search-section">
@@ -897,7 +897,14 @@ function updateRankings() {
     }
 
     function closeModal() { document.getElementById('overlay').style.display = 'none'; document.getElementById('modal').style.display = 'none'; }
-    function resetAll() { selection = { out: null, in: null }; refreshUI(); }
+function resetAll() {
+    selection = { out: null, in: null };
+    document.getElementById('leaveFilter').value = '';
+    document.getElementById('starluxOnly').checked = false;
+    document.getElementById('includeEtaEsta') && (document.getElementById('includeEtaEsta').checked = false);
+    document.getElementById('includeAmtrak') && (document.getElementById('includeAmtrak').checked = false);
+    refreshUI();
+}
 
     function renderMonth(year, month) {
         var wrap = document.createElement('div');
