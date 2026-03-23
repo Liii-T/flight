@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>2027 極光之旅航班規劃</title>
-    <h3>2026/03/23 更新價格</h3>
     <style>
         :root {
             --primary-out: #28a745;
@@ -465,6 +464,7 @@
     <div class="header">
         <div class="header-top">
             <h2>✈️ 2027 極光航班規劃</h2>
+            <h3>2026/03/23 更新價格</h3>
             <button class="btn-reset" onclick="resetAll()">🔄 清除</button>
         </div>
 
@@ -478,18 +478,18 @@
             </label>
             <label class="checkbox-container">
                 <input type="checkbox" id="includeEtaEsta" onchange="refreshUI()">
-                價格包含簽證<br> eTA (21 USD) + ESTA (7 CAD)
+                <h4>價格包含簽證<br> eTA (21 USD) + ESTA (7 CAD)</h4>
             </label>
 
             <label class="checkbox-container">
                 <input type="checkbox" id="includeAmtrak" onchange="refreshUI()">
-                價格包含 美→加 火車單趟<br> Amtrak Cascades (40 USD)
+                <h4>價格包含 美→加 火車單趟<br> Amtrak Cascades (40 USD)</h4>
             </label>
         </div>
 
         <div class="mode-selector">
-            <button id="mode-multi" class="mode-btn active" onclick="setTripMode('multi')">多點<br> (西雅圖SEA進/溫哥華YVR出)</button>
-            <button id="mode-yvr" class="mode-btn" onclick="setTripMode('yvr')">單點<br> (溫哥華YVR進出)</button>
+            <button id="mode-multi" class="mode-btn active" onclick="setTripMode('multi')">多點<br> <h4>(西雅圖SEA進/溫哥華YVR出)</h4></button>
+            <button id="mode-yvr" class="mode-btn" onclick="setTripMode('yvr')">單點<br> <h4>(溫哥華YVR進出)</h4></button>
         </div>
     </div>
 
